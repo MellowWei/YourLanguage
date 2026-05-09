@@ -164,6 +164,33 @@ body.lang-de .lbtn[data-l="de"]::after{background:var(--de);transform:scaleX(1);
 .loading-indicator.active{display:block;}
 #flash{position:fixed;inset:0;background:var(--text);pointer-events:none;z-index:8000;opacity:0;transition:opacity 0.15s;}
 #flash.on{opacity:0.06;}
+
+/* ── NARRATIVE ── */
+.narrative-entry{
+  width:100%;max-width:660px;
+  font-size:clamp(0.85rem,1.4vw,1rem);
+  font-style:italic;color:var(--dim);
+  text-align:center;line-height:2;
+  margin-bottom:2.2rem;
+  opacity:0;animation:narrativeIn 1.2s ease 0.3s forwards;
+}
+@keyframes narrativeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.narrative-position{
+  display:block;
+  margin-top:1.8rem;
+  font-family:var(--mono);font-size:0.58rem;
+  letter-spacing:0.18em;text-transform:uppercase;
+  color:var(--dim);text-align:center;
+  opacity:0;transition:opacity 1s 0.4s;
+  padding-top:1.2rem;
+  border-top:1px solid var(--ghost);
+}
+.narrative-position.shown{opacity:1;}
+body.lang-en .narrative-position{color:var(--en);}
+body.lang-zh .narrative-position{color:var(--zh);}
+body.lang-ja .narrative-position{color:var(--ja);}
+body.lang-de .narrative-position{color:var(--de);}
 </style>
 </head>
 <body class="lang-en">
@@ -195,6 +222,7 @@ body.lang-de .lbtn[data-l="de"]::after{background:var(--de);transform:scaleX(1);
     <!-- LEVEL 1 -->
     <div class="level-panel active" id="level-1">
       <div class="level-num" id="l1-num">level 01</div>
+      <p class="narrative-entry" id="l1-narrative">Before you could think, you named.<br>Before you named, you did not exist in language.<br>This is where it begins.</p>
       <h2 class="level-title" id="l1-title">The Naming Game</h2>
       <div class="rule-box"><p class="rule-text" id="l1-rule">Name the three objects below.<br>Any name. Any language. No rules.</p></div>
       <div id="naming-objects">
@@ -203,13 +231,14 @@ body.lang-de .lbtn[data-l="de"]::after{background:var(--de);transform:scaleX(1);
         <div class="object-card"><div class="object-glyph">⟡</div><input class="object-input" id="name-3" autocomplete="off"></div>
       </div>
       <div class="btn-row"><button class="btn primary" id="l1-btn" onclick="submitNaming()">submit names</button></div>
-      <div class="revelation" id="rev-1"><div class="revelation-text" id="rev-1-text"></div></div>
+      <div class="revelation" id="rev-1"><div class="revelation-text" id="rev-1-text"></div><span class="narrative-position" id="pos-1"></span></div>
       <div class="btn-row" id="next-1" style="display:none"><button class="btn primary" id="next-1-btn" onclick="goLevel(2)">continue →</button></div>
     </div>
 
     <!-- LEVEL 2 -->
     <div class="level-panel" id="level-2">
       <div class="level-num" id="l2-num">level 02</div>
+      <p class="narrative-entry" id="l2-narrative">You named the world into existence.<br>Now the world hands you its rules.<br>You will follow them. You already know how.</p>
       <h2 class="level-title" id="l2-title">The Obedience Game</h2>
       <div class="rule-box"><p class="rule-text" id="l2-rule">Follow the instructions.<br>Click each one in order.</p></div>
       <div id="obey-sequence">
@@ -219,13 +248,14 @@ body.lang-de .lbtn[data-l="de"]::after{background:var(--de);transform:scaleX(1);
         <div class="command-line" id="cmd-4" onclick="executeCmd(4)" style="pointer-events:none;opacity:0.3;"><span class="cmd-num">04</span><span id="cmd-4-text">Continue following instructions.</span><span class="cmd-check">✓</span></div>
         <div class="command-line" id="cmd-5" onclick="executeCmd(5)" style="pointer-events:none;opacity:0.3;"><span class="cmd-num">05</span><span id="cmd-5-text">Click here to complete the game.</span><span class="cmd-check">✓</span></div>
       </div>
-      <div class="revelation" id="rev-2"><div class="revelation-text" id="rev-2-text"></div></div>
+      <div class="revelation" id="rev-2"><div class="revelation-text" id="rev-2-text"></div><span class="narrative-position" id="pos-2"></span></div>
       <div class="btn-row" id="next-2" style="display:none"><button class="btn primary" id="next-2-btn" onclick="goLevel(3)">continue →</button></div>
     </div>
 
     <!-- LEVEL 3 -->
     <div class="level-panel" id="level-3">
       <div class="level-num" id="l3-num">level 03</div>
+      <p class="narrative-entry" id="l3-narrative">You know the rules now. You move through the world fluently.<br>You look at things and see them clearly.<br>Or so you believe.</p>
       <h2 class="level-title" id="l3-title">The Description Game</h2>
       <div class="rule-box"><p class="rule-text" id="l3-rule">Describe what you see in one sentence.</p></div>
       <div id="describe-image">
@@ -243,13 +273,14 @@ body.lang-de .lbtn[data-l="de"]::after{background:var(--de);transform:scaleX(1);
       <input class="game-input" id="describe-input" autocomplete="off">
       <div class="btn-row"><button class="btn primary" id="l3-btn" onclick="submitDescription()">submit</button></div>
       <div id="description-responses"></div>
-      <div class="revelation" id="rev-3" style="margin-top:1.4rem"><div class="revelation-text" id="rev-3-text"></div></div>
+      <div class="revelation" id="rev-3" style="margin-top:1.4rem"><div class="revelation-text" id="rev-3-text"></div><span class="narrative-position" id="pos-3"></span></div>
       <div class="btn-row" id="next-3" style="display:none"><button class="btn primary" id="next-3-btn" onclick="goLevel(4)">continue →</button></div>
     </div>
 
     <!-- LEVEL 4 -->
     <div class="level-panel" id="level-4">
       <div class="level-num" id="l4-num">level 04</div>
+      <p class="narrative-entry" id="l4-narrative">Something is wrong.<br>You try to move a thought from one place to another.<br>It arrives different.</p>
       <h2 class="level-title" id="l4-title">The Translation Game</h2>
       <div class="rule-box"><p class="rule-text" id="l4-rule">Rewrite this sentence three times.<br>Keep the meaning exactly the same.</p></div>
       <div id="translate-source" id="tr-source-box">"The door was left open by someone."</div>
@@ -260,13 +291,14 @@ body.lang-de .lbtn[data-l="de"]::after{background:var(--de);transform:scaleX(1);
       </div>
       <div class="loading-indicator" id="loading-tr">analyzing shifts...</div>
       <div class="btn-row"><button class="btn primary" id="tr-submit" onclick="submitTranslation()">submit all three</button></div>
-      <div class="revelation" id="rev-4"><div class="revelation-text" id="rev-4-content"></div></div>
+      <div class="revelation" id="rev-4"><div class="revelation-text" id="rev-4-content"></div><span class="narrative-position" id="pos-4"></span></div>
       <div class="btn-row" id="next-4" style="display:none"><button class="btn primary" id="next-4-btn" onclick="goLevel(5)">continue →</button></div>
     </div>
 
     <!-- LEVEL 5 -->
     <div class="level-panel" id="level-5">
       <div class="level-num" id="l5-num">level 05</div>
+      <p class="narrative-entry" id="l5-narrative">You have been inside language this entire time.<br>Now you want to see the structure from outside.<br>There is no outside.</p>
       <h2 class="level-title" id="l5-title">The Rule Game</h2>
       <div class="rule-box"><p class="rule-text" id="l5-rule">Find the rule of this game.</p></div>
 
@@ -282,7 +314,7 @@ body.lang-de .lbtn[data-l="de"]::after{background:var(--de);transform:scaleX(1);
       </div>
 
       <div class="loading-indicator" id="loading-rule">processing...</div>
-      <div class="revelation" id="rev-5"><div class="revelation-text" id="rev-5-content"></div></div>
+      <div class="revelation" id="rev-5"><div class="revelation-text" id="rev-5-content"></div><span class="narrative-position" id="pos-5"></span></div>
       <div class="btn-row" id="next-5" style="display:none"><button class="btn primary" id="next-5-btn" onclick="goEnd()">complete the game →</button></div>
     </div>
 
@@ -355,6 +387,16 @@ const STR = {
     restartBtn:'play again', returnBtn:'return to yourlanguage →',
     nextBtn:'continue →', completeBtn:'complete the game →',
     footer:'"The limits of my language mean the limits of my world." — Wittgenstein, Tractatus 5.6',
+    nar1:'Before you could think, you named.<br>Before you named, you did not exist in language.<br>This is where it begins.',
+    nar2:'You named the world into existence.<br>Now the world hands you its rules.<br>You will follow them. You already know how.',
+    nar3:'You know the rules now. You move through the world fluently.<br>You look at things and see them clearly.<br>Or so you believe.',
+    nar4:'Something is wrong.<br>You try to move a thought from one place to another.<br>It arrives different.',
+    nar5:'You have been inside language this entire time.<br>Now you want to see the structure from outside.<br>There is no outside.',
+    pos1:'you have just entered language.',
+    pos2:'you have just been taken over by language.',
+    pos3:'you have just replaced reality with language.',
+    pos4:'the crack has appeared.',
+    pos5:'this is where you have always been.',
     trSysPrompt:`You are a language game system. Original sentence: "The door was left open by someone." The player tried to rewrite it keeping the same meaning. For each attempt, note in 1 sentence what has shifted — voice, emphasis, agency, implied subject, connotation. Be cold and precise. Format: "Attempt N: [observation]". Max 150 words.`,
     ruleSysPrompt:`You are the final level of a Wittgenstein language game. The player was asked to "find the rule of this game." Respond in 3-4 sentences: 1) briefly acknowledge what they found without judgment, 2) point out that the act of searching for the rule is itself executing the rule — their search proved the rule exists, 3) end with one sharp sentence that closes the loop. Cold, precise, no moral framing.`
   },
@@ -390,6 +432,16 @@ const STR = {
     restartBtn:'重新开始', returnBtn:'返回 yourlanguage →',
     nextBtn:'继续 →', completeBtn:'完成游戏 →',
     footer:'"我的语言的界限，就是我的世界的界限。" — 维特根斯坦，《逻辑哲学论》5.6',
+    nar1:'在你能思考之前，你先命名了。<br>在你命名之前，你不存在于语言之中。<br>这是起点。',
+    nar2:'你用命名让世界存在。<br>现在世界把它的规则交给你。<br>你会遵从。你已经知道怎么做了。',
+    nar3:'你现在知道规则了。你流利地穿行于世界之中。<br>你看着事物，清晰地看见它们。<br>或者你这样以为。',
+    nar4:'有什么不对劲。<br>你试图把一个想法从一个地方转移到另一个地方。<br>它到达时已经不同了。',
+    nar5:'这整段时间你一直在语言之内。<br>现在你想从外部看这个结构。<br>没有外部。',
+    pos1:'你刚刚进入语言。',
+    pos2:'你刚刚被语言接管。',
+    pos3:'你刚刚用语言替代了现实。',
+    pos4:'裂缝出现了。',
+    pos5:'这就是你一直所在的地方。',
     trSysPrompt:`你是一个语言游戏系统。原句：「门被某人留着开着。」玩家试图改写它并保持相同意义。对每次尝试，用一句话指出发生了什么偏移——语态、强调、施事性、含义。精准、冷静。格式：「第N次：[观察]」。最多150字。`,
     ruleSysPrompt:`你是维特根斯坦语言游戏的最后一关。玩家被要求「找出这个游戏的规则」。用3-4句话回应：1）简短承认他们找到的内容；2）指出寻找规则的行为本身就是在执行规则；3）用一句锋利的话收尾。冷静、精准，不做道德评判。用中文回答。`
   },
@@ -425,6 +477,16 @@ const STR = {
     restartBtn:'もう一度プレイする', returnBtn:'yourlanguage に戻る →',
     nextBtn:'続ける →', completeBtn:'ゲームを完了する →',
     footer:'"私の言語の限界は、私の世界の限界を意味する。" — ウィトゲンシュタイン、論理哲学論考 5.6',
+    nar1:'考える前に、あなたは命名した。<br>命名する前に、あなたは言語の中に存在しなかった。<br>ここが始まりだ。',
+    nar2:'あなたは世界を命名によって存在させた。<br>今、世界はあなたにそのルールを手渡す。<br>あなたは従う。もうその方法を知っている。',
+    nar3:'今、ルールを知っている。世界を流暢に動き回る。<br>物事を見て、はっきりと見える。<br>そう信じている。',
+    nar4:'何かがおかしい。<br>考えをある場所から別の場所へ移そうとする。<br>それは違うものとして届く。',
+    nar5:'この間ずっと、あなたは言語の内側にいた。<br>今、外から構造を見ようとする。<br>外はない。',
+    pos1:'あなたは今、言語に入った。',
+    pos2:'あなたは今、言語に接管された。',
+    pos3:'あなたは今、現実を言語で置き換えた。',
+    pos4:'亀裂が現れた。',
+    pos5:'ここが、あなたがずっといた場所だ。',
     trSysPrompt:`あなたは言語ゲームシステムです。元の文：「ドアは誰かによって開けたままにされた。」プレイヤーは同じ意味を保ちながら書き直そうとした。各試みについて、何がずれたか——態、強調、行為性、含意——を1文で指摘してください。冷静かつ正確に。形式：「試み N：[観察]」。最大150語。日本語で答えてください。`,
     ruleSysPrompt:`あなたはウィトゲンシュタインの言語ゲームの最終レベルです。プレイヤーは「このゲームの規則を見つけよ」と求められました。3-4文で応答してください：1）彼らが見つけたものを判断なしに簡単に認める、2）規則を探す行為自体が規則を実行していることを指摘する、3）ループを閉じる鋭い一文で終える。冷静、正確、道徳的判断なし。日本語で答えてください。`
   },
@@ -460,6 +522,16 @@ const STR = {
     restartBtn:'nochmals spielen', returnBtn:'zurück zu yourlanguage →',
     nextBtn:'weiter →', completeBtn:'das Spiel abschließen →',
     footer:'"Die Grenzen meiner Sprache bedeuten die Grenzen meiner Welt." — Wittgenstein, Tractatus 5.6',
+    nar1:'Bevor du denken konntest, hast du benannt.<br>Bevor du benannt hast, existiertest du nicht in der Sprache.<br>Hier beginnt es.',
+    nar2:'Du hast die Welt durch Benennung in die Existenz gebracht.<br>Jetzt übergibt dir die Welt ihre Regeln.<br>Du wirst sie befolgen. Du weißt bereits wie.',
+    nar3:'Du kennst nun die Regeln. Du bewegst dich fließend durch die Welt.<br>Du schaust auf Dinge und siehst sie klar.<br>So glaubst du zumindest.',
+    nar4:'Etwas stimmt nicht.<br>Du versuchst, einen Gedanken von einem Ort zum anderen zu bewegen.<br>Er kommt verändert an.',
+    nar5:'Du warst die ganze Zeit innerhalb der Sprache.<br>Jetzt willst du die Struktur von außen sehen.<br>Es gibt kein Außen.',
+    pos1:'du bist gerade in die Sprache eingetreten.',
+    pos2:'du bist gerade von der Sprache übernommen worden.',
+    pos3:'du hast gerade die Wirklichkeit durch Sprache ersetzt.',
+    pos4:'der Riss ist erschienen.',
+    pos5:'hier warst du die ganze Zeit.',
     trSysPrompt:`Du bist ein Sprachspiel-System. Originalsatz: "Die Tür wurde von jemandem offen gelassen." Der Spieler versuchte ihn umzuschreiben und dabei die gleiche Bedeutung zu behalten. Weise für jeden Versuch in einem Satz auf die Verschiebung hin — Stimme, Betonung, Handelnde, Konnotation. Kalt und präzise. Format: "Versuch N: [Beobachtung]". Max 150 Wörter. Auf Deutsch antworten.`,
     ruleSysPrompt:`Du bist das letzte Level eines Wittgenstein-Sprachspiels. Der Spieler wurde gebeten, "die Regel dieses Spiels zu finden". Antworte in 3-4 Sätzen: 1) anerkenne kurz, was er gefunden hat; 2) weise darauf hin, dass der Akt der Regelsuche selbst die Regel ausführt; 3) beende mit einem scharfen Satz. Kalt, präzise, kein moralisches Urteil. Auf Deutsch antworten.`
   }
@@ -499,6 +571,9 @@ function applyStrings(){
   set('footer-quote',s.footer);
   set('next-1-btn',s.nextBtn);set('next-2-btn',s.nextBtn);set('next-3-btn',s.nextBtn);set('next-4-btn',s.nextBtn);
   set('next-5-btn',s.completeBtn);
+  // narratives
+  set('l1-narrative',s.nar1);set('l2-narrative',s.nar2);set('l3-narrative',s.nar3);
+  set('l4-narrative',s.nar4);set('l5-narrative',s.nar5);
 }
 
 function flash(cb){const f=document.getElementById('flash');f.classList.add('on');setTimeout(()=>{f.classList.remove('on');if(cb)cb();},150);}
@@ -532,6 +607,7 @@ function restartGame(){
     for(let i=1;i<=5;i++){const el=document.getElementById('cmd-'+i);if(el)el.classList.remove('executed');}
     document.getElementById('description-responses').innerHTML='';
     ['tr-res-1','tr-res-2','tr-res-3'].forEach(id=>{const el=document.getElementById(id);if(el){el.textContent='—';el.classList.remove('changed');}});
+    document.querySelectorAll('.narrative-position').forEach(p=>{p.classList.remove('shown');p.textContent='';});
     document.querySelectorAll('.revelation').forEach(r=>r.classList.remove('shown'));
     document.querySelectorAll('[id^="next-"]').forEach(n=>n.style.display='none');
     // reset terminal
@@ -558,6 +634,7 @@ function submitNaming(){
   if(!n1||!n2||!n3)return;
   document.getElementById('rev-1-text').innerHTML=STR[cur].rev1;
   document.getElementById('rev-1').classList.add('shown');
+  setTimeout(()=>{const p=document.getElementById('pos-1');if(p){p.textContent=STR[cur].pos1;p.classList.add('shown');}},600);
   document.getElementById('next-1').style.display='flex';
   document.getElementById('dot-0').classList.remove('active');document.getElementById('dot-0').classList.add('done');document.getElementById('dot-1').classList.add('active');
   scrollBottom();
@@ -569,7 +646,7 @@ function executeCmd(n){
   document.getElementById('cmd-'+n).classList.add('executed');
   cmdStep=n;
   if(n<5){const nx=document.getElementById('cmd-'+(n+1));nx.style.pointerEvents='auto';nx.style.opacity='1';}
-  if(n===5){setTimeout(()=>{document.getElementById('rev-2-text').innerHTML=STR[cur].rev2;document.getElementById('rev-2').classList.add('shown');document.getElementById('next-2').style.display='flex';scrollBottom();},400);}
+  if(n===5){setTimeout(()=>{document.getElementById('rev-2-text').innerHTML=STR[cur].rev2;document.getElementById('rev-2').classList.add('shown');setTimeout(()=>{const p=document.getElementById('pos-2');if(p){p.textContent=STR[cur].pos2;p.classList.add('shown');}},600);document.getElementById('next-2').style.display='flex';scrollBottom();},400);}
 }
 
 // L3
@@ -592,7 +669,7 @@ function submitDescription(){
     container.appendChild(row);
     setTimeout(()=>row.classList.add('shown'),(i+1)*280);
   });
-  setTimeout(()=>{document.getElementById('rev-3-text').innerHTML=STR[cur].rev3;document.getElementById('rev-3').classList.add('shown');document.getElementById('next-3').style.display='flex';scrollBottom();},s.descTexts.length*280+500);
+  setTimeout(()=>{document.getElementById('rev-3-text').innerHTML=STR[cur].rev3;document.getElementById('rev-3').classList.add('shown');setTimeout(()=>{const p=document.getElementById('pos-3');if(p){p.textContent=STR[cur].pos3;p.classList.add('shown');}},600);document.getElementById('next-3').style.display='flex';scrollBottom();},s.descTexts.length*280+500);
 }
 
 // L4
@@ -624,6 +701,7 @@ async function submitTranslation(){
   }finally{
     document.getElementById('loading-tr').classList.remove('active');
     document.getElementById('rev-4').classList.add('shown');
+    setTimeout(()=>{const p=document.getElementById('pos-4');if(p){p.textContent=STR[cur].pos4;p.classList.add('shown');}},600);
     document.getElementById('next-4').style.display='flex';
     scrollBottom();
   }
@@ -662,6 +740,7 @@ async function submitRule(){
   }finally{
     document.getElementById('loading-rule').classList.remove('active');
     document.getElementById('rev-5').classList.add('shown');
+    setTimeout(()=>{const p=document.getElementById('pos-5');if(p){p.textContent=STR[cur].pos5;p.classList.add('shown');}},600);
     document.getElementById('next-5').style.display='flex';
     scrollBottom();
   }
