@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>yourlanguage</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Space+Mono:wght@400;700&display=swap');
+
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --text: #e8e4dc;
+    --text-dim: #6b6560;
+    --text-ghost: #2a2825;
+    --accent: #c8b89a;
+    --crack: #ff4444;
+    --interrupt: #4a9eff;
+    --phase: #e8c547;
+    --annotation-bg: rgba(10,10,10,0.95);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 18px;
+    line-height: 1.9;
+    cursor: default;
+    overflow-x: hidden;
+  }
+
+  /* ── GRAIN OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* ── PROGRESS LINE ── */
+  #progress-line {
+    position: fixed;
+    top: 0; left: 0;
+    height: 1px;
+    background: var(--accent);
+    width: 0%;
+    z-index: 1000;
+    transition: width 0.1s linear;
+  }
+
+  /* ── SECTIONS ── */
+  section {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 10vh 12vw;
+    position: relative;
+  }
+
+  /* ── SCREEN 1: ENTRY ── */
+  #screen-1 {
+    align-items: flex-start;
+  }
+
+  .site-title {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(2rem, 6vw, 5rem);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 3rem;
+    opacity: 0;
+    animation: fadeUp 1.2s ease 0.3s forwards;
+  }
+
+  .site-title span {
+    color: var(--accent);
+  }
+
+  .entry-line {
+    font-size: clamp(1rem, 2vw, 1.3rem);
+    color: var(--text-dim);
+    max-width: 520px;
+    opacity: 0;
+    animation: fadeUp 1.2s ease 0.8s forwards;
+    font-style: italic;
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 8vh;
+    left: 12vw;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-ghost);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    opacity: 0;
+    animation: fadeUp 1s ease 1.8s forwards;
+  }
+
+  /* ── SCREEN 2: SURFACE LAYER ── */
+  #screen-2 {
+    max-width: 720px;
+  }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-ghost);
+    margin-bottom: 3rem;
+  }
+
+  .prose {
+    font-size: clamp(1rem, 1.8vw, 1.25rem);
+    line-height: 2;
+    color: var(--text);
+  }
+
+  .prose p {
+    margin-bottom: 2rem;
+  }
+
+  /* ── CRACKABLE WORDS ── */
+  .crack {
+    position: relative;
+    display: inline;
+    cursor: pointer;
+    transition: color 0.3s;
+  }
+
+  .crack::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 1px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s ease;
+  }
+
+  .crack:hover { color: var(--accent); }
+  .crack:hover::after { transform: scaleX(1); }
+
+  .crack.activated {
+    color: var(--crack);
+  }
+
+  .crack.activated::after {
+    background: var(--crack);
+    transform: scaleX(1);
+  }
+
+  /* ── ANNOTATION POPUP ── */
+  .annotation {
+    display: none;
+    position: fixed;
+    z-index: 500;
+    background: var(--annotation-bg);
+    border: 1px solid var(--crack);
+    padding: 1.4rem 1.8rem;
+    max-width: 340px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    line-height: 1.7;
+    color: var(--text);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .annotation.visible {
+    display: block;
+    opacity: 1;
+  }
+
+  .annotation-tag {
+    color: var(--crack);
+    font-weight: 700;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+
+  /* ── SCREEN 3: PRESSURE BUILDS ── */
+  #screen-3 {
+    max-width: 720px;
+  }
+
+  .interrupt-block {
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.6s, transform 0.6s;
+    margin-bottom: 2.5rem;
+  }
+
+  .interrupt-block.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .interrupt-line {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--interrupt);
+    letter-spacing: 0.08em;
+    margin-bottom: 0.4rem;
+    display: block;
+  }
+
+  /* ── SCREEN 4: ACCELERATION ── */
+  #screen-4 {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .split-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4vw;
+    max-width: 1000px;
+    width: 100%;
+  }
+
+  .layer-surface {
+    border-right: 1px solid var(--text-ghost);
+    padding-right: 4vw;
+  }
+
+  .layer-deep {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    line-height: 1.8;
+    color: var(--interrupt);
+  }
+
+  .layer-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    display: block;
+  }
+
+  .layer-surface .layer-label { color: var(--text-ghost); }
+  .layer-deep .layer-label { color: var(--interrupt); }
+
+  .deep-item {
+    opacity: 0;
+    margin-bottom: 1.2rem;
+    padding-left: 1rem;
+    border-left: 2px solid transparent;
+    transition: opacity 0.4s, border-color 0.4s;
+  }
+
+  .deep-item.fired {
+    opacity: 1;
+    border-color: var(--interrupt);
+  }
+
+  .deep-tag {
+    display: block;
+    font-size: 0.58rem;
+    color: var(--crack);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 0.2rem;
+  }
+
+  /* ── SCREEN 5: PHASE TRANSITION ── */
+  #screen-5 {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    overflow: hidden;
+  }
+
+  #phase-container {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .surface-text {
+    font-size: clamp(1.1rem, 2vw, 1.4rem);
+    line-height: 2;
+    color: var(--text-dim);
+    transition: opacity 1s, color 1s;
+    position: relative;
+    z-index: 2;
+  }
+
+  .deep-flood {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(0.65rem, 1.2vw, 0.85rem);
+    line-height: 2;
+    color: var(--phase);
+    opacity: 0;
+    transition: opacity 1.5s;
+    z-index: 3;
+    text-align: left;
+    padding: 2rem;
+  }
+
+  .deep-flood.flooded {
+    opacity: 1;
+  }
+
+  .surface-text.drowned {
+    opacity: 0.05;
+  }
+
+  /* ── SCREEN 6: REVEAL ── */
+  #screen-6 {
+    align-items: center;
+    text-align: center;
+  }
+
+  .reveal-title {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
+    color: var(--text-ghost);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 4rem;
+    opacity: 0;
+    transition: opacity 1s;
+  }
+
+  .reveal-title.visible { opacity: 1; }
+
+  .four-behaviors {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    max-width: 900px;
+    width: 100%;
+    margin-bottom: 5rem;
+    opacity: 0;
+    transition: opacity 1s 0.5s;
+  }
+
+  .four-behaviors.visible { opacity: 1; }
+
+  .behavior-cell {
+    padding: 2rem 1.5rem;
+    background: var(--surface);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .behavior-cell::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .behavior-cell:nth-child(1)::before { background: var(--accent); }
+  .behavior-cell:nth-child(2)::before { background: var(--interrupt); }
+  .behavior-cell:nth-child(3)::before { background: var(--crack); }
+  .behavior-cell:nth-child(4)::before { background: var(--phase); }
+
+  .behavior-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    color: var(--text-ghost);
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+  }
+
+  .behavior-name {
+    font-size: 1.1rem;
+    font-style: italic;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+
+  .behavior-en {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-ghost);
+    letter-spacing: 0.1em;
+  }
+
+  .final-line {
+    font-size: clamp(1rem, 2vw, 1.3rem);
+    font-style: italic;
+    color: var(--text-dim);
+    max-width: 600px;
+    line-height: 2;
+    opacity: 0;
+    transition: opacity 1s 1s;
+  }
+
+  .final-line.visible { opacity: 1; }
+
+  .final-line strong {
+    color: var(--text);
+    font-style: normal;
+    font-weight: 400;
+  }
+
+  /* ── INPUT SECTION ── */
+  #screen-7 {
+    align-items: center;
+  }
+
+  .input-wrapper {
+    width: 100%;
+    max-width: 680px;
+  }
+
+  .input-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-ghost);
+    margin-bottom: 1.5rem;
+    display: block;
+  }
+
+  textarea {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--text-ghost);
+    color: var(--text);
+    font-family: 'EB Garamond', serif;
+    font-size: 1.1rem;
+    line-height: 1.9;
+    padding: 1rem 0;
+    resize: none;
+    outline: none;
+    min-height: 120px;
+    transition: border-color 0.3s;
+  }
+
+  textarea:focus {
+    border-bottom-color: var(--accent);
+  }
+
+  textarea::placeholder {
+    color: var(--text-ghost);
+    font-style: italic;
+  }
+
+  .analyze-btn {
+    margin-top: 2rem;
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.9rem 2.5rem;
+    cursor: pointer;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  .analyze-btn:hover {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  .analyze-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  #analysis-output {
+    margin-top: 3rem;
+    display: none;
+  }
+
+  .analysis-row {
+    margin-bottom: 2.5rem;
+    padding-left: 1.5rem;
+    border-left: 2px solid var(--text-ghost);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.5s, transform 0.5s, border-color 0.5s;
+  }
+
+  .analysis-row.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .analysis-row:nth-child(1) { border-color: var(--accent); }
+  .analysis-row:nth-child(2) { border-color: var(--interrupt); }
+  .analysis-row:nth-child(3) { border-color: var(--crack); }
+  .analysis-row:nth-child(4) { border-color: var(--phase); }
+
+  .analysis-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+
+  .analysis-row:nth-child(1) .analysis-tag { color: var(--accent); }
+  .analysis-row:nth-child(2) .analysis-tag { color: var(--interrupt); }
+  .analysis-row:nth-child(3) .analysis-tag { color: var(--crack); }
+  .analysis-row:nth-child(4) .analysis-tag { color: var(--phase); }
+
+  .analysis-content {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--text);
+  }
+
+  .loading-dots {
+    display: none;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-ghost);
+    letter-spacing: 0.1em;
+  }
+
+  .loading-dots.active { display: block; }
+
+  /* ── FOOTER ── */
+  footer {
+    padding: 4rem 12vw;
+    border-top: 1px solid var(--text-ghost);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-mark {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-ghost);
+    letter-spacing: 0.1em;
+  }
+
+  .footer-link {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-ghost);
+    text-decoration: none;
+    letter-spacing: 0.1em;
+    border-bottom: 1px solid transparent;
+    transition: color 0.3s, border-color 0.3s;
+  }
+
+  .footer-link:hover {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    width: 40px;
+    height: 1px;
+    background: var(--text-ghost);
+    margin: 0 0 4rem 0;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse-crack {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .crack.activated {
+    animation: pulse-crack 2s ease infinite;
+  }
+
+  /* ── INTERRUPT OVERLAY ── */
+  #interrupt-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10,10,10,0.97);
+    z-index: 800;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    text-align: center;
+    padding: 10vw;
+  }
+
+  #interrupt-overlay.active {
+    display: flex;
+  }
+
+  .interrupt-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--interrupt);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+  }
+
+  .interrupt-text {
+    font-size: clamp(1.2rem, 3vw, 2rem);
+    font-style: italic;
+    color: var(--text);
+    max-width: 600px;
+    line-height: 1.8;
+    margin-bottom: 3rem;
+  }
+
+  .interrupt-close {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-ghost);
+    letter-spacing: 0.15em;
+    cursor: pointer;
+    border-bottom: 1px solid var(--text-ghost);
+    padding-bottom: 2px;
+    transition: color 0.3s, border-color 0.3s;
+  }
+
+  .interrupt-close:hover {
+    color: var(--text);
+    border-color: var(--text);
+  }
+
+  /* ── MOBILE ── */
+  @media (max-width: 700px) {
+    section { padding: 8vh 7vw; }
+    .split-container { grid-template-columns: 1fr; }
+    .layer-surface { border-right: none; border-bottom: 1px solid var(--text-ghost); padding-right: 0; padding-bottom: 2rem; margin-bottom: 2rem; }
+    .four-behaviors { grid-template-columns: repeat(2, 1fr); }
+    footer { flex-direction: column; gap: 1rem; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-line"></div>
+
+<!-- ANNOTATION POPUP -->
+<div class="annotation" id="annotation"></div>
+
+<!-- INTERRUPT OVERLAY -->
+<div id="interrupt-overlay">
+  <div class="interrupt-label">— 底层注释 / deep layer —</div>
+  <div class="interrupt-text" id="interrupt-text"></div>
+  <div class="interrupt-close" onclick="closeInterrupt()">继续阅读 / continue reading ↓</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 1 — ENTRY
+══════════════════════════════════════════ -->
+<section id="screen-1">
+  <h1 class="site-title">your<span>language</span></h1>
+  <p class="entry-line">这是一个关于语言的网站。</p>
+  <div class="scroll-hint">向下滚动 / scroll</div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 2 — SURFACE BEGINS (命名行为)
+══════════════════════════════════════════ -->
+<section id="screen-2">
+  <div class="section-label">— 001 —</div>
+  <div class="divider"></div>
+  <div class="prose">
+    <p>
+      语言是一种
+      <span class="crack" data-annotation="命名行为" data-text="「工具」这个词在进入句子的瞬间已经完成了它的工作。它告诉你：语言在你之外，你使用它。这是第一个前提，你还没有同意，它已经生效。">工具</span>。
+      你用它思考，用它沟通，用它
+      <span class="crack" data-annotation="命名行为" data-text="「表达自己」预设了存在一个先于语言的「自己」等待被表达。但如果没有语言，那个「自己」是什么形状的？">表达自己</span>。
+    </p>
+    <p>
+      在你开口之前，你已经知道自己想说什么。语言只是
+      <span class="crack" data-annotation="加压行为" data-text="「载体」把语言降格为容器。此刻，「你的想法先于语言存在」这个前提正在被加压——它变得更理所当然了。你注意到了吗？">载体</span>。
+      意义在你心里，
+      <span class="crack" data-annotation="加压行为" data-text="「已经在那里了」——这句话在为你描述一个你无法验证的内心状态，并且让你点头。你点头了吗？">已经在那里了</span>。
+    </p>
+    <p>
+      所以这个网站想做的，是帮助你更好地
+      <span class="crack" data-annotation="滑义行为" data-text="「使用」这个词在这里完成了滑义。它从「工具」的命名出发，到「载体」的加压，现在「使用」把这整套预设收编进来，让它们变成常识。你没有被说服，你被带过去了。" data-interrupt="true">使用</span>
+      你的语言。
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 3 — PRESSURE BUILDS (加压行为)
+══════════════════════════════════════════ -->
+<section id="screen-3">
+  <div class="section-label">— 002 —</div>
+  <div class="divider"></div>
+  <div class="prose">
+    <p>
+      你可能注意到，有些人的表达更
+      <span class="crack" data-annotation="加压行为" data-text="「准确」悄悄引入了一个标准。谁的标准？准确相对于什么？但这个问题没有被问，因为「准确」听起来是中性词。它不是。">准确</span>，
+      有些人的语言更
+      <span class="crack" data-annotation="加压行为" data-text="「有力量」把语言的质量与人的质量开始悄悄绑定。这是加压。你开始感到，语言能力是一种你可以拥有或缺失的东西。">有力量</span>。
+    </p>
+    <p>
+      这不是天赋问题。这是
+      <span class="crack" data-annotation="滑义行为" data-text="「意识」在这里完成了一次滑义：从技能问题滑向了觉知问题。有意识的人语言更好——这个逻辑现在已经在你心里了，虽然没有人明说。" data-interrupt="true">意识</span>
+      的问题。
+    </p>
+    <p>
+      那些真正理解语言运作方式的人，
+      <span class="crack" data-annotation="加压行为" data-text="「自由」是这段文字里最重要的词。它在这里的功能是：让你想成为那种人。想要自由是人类的本能反应。这个词不是在描述状态，它在制造渴望。">更自由</span>。
+      不被语言操控，而是
+      <span class="crack" data-annotation="相变行为" data-text="你刚才同意了什么？你同意了：存在「被操控」和「驾驭」两种状态。你同意了你目前可能在被操控。你同意了这个网站可以帮你从一种状态到另一种。你没有被论证，你被带过去了。这就是相变。" data-interrupt="true">驾驭它</span>。
+    </p>
+  </div>
+
+  <div style="margin-top: 4rem;">
+    <div class="interrupt-block" id="ib-1">
+      <span class="interrupt-line">// 底层注释</span>
+      <p style="font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--text-dim); line-height: 1.9; max-width: 540px;">
+        你刚才读了两段话。<br>
+        在这两段话里，语言被命名为工具、被描述为载体、被分级为准确/不准确，最后被分配了自由与被操控的道德方向。<br><br>
+        你没有被说服。<br>
+        你被<span style="color: var(--crack);">带过去</span>了。
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 4 — TWO LAYERS VISIBLE
+══════════════════════════════════════════ -->
+<section id="screen-4">
+  <div class="section-label">— 003 —</div>
+  <div class="divider"></div>
+  <div class="split-container">
+    <div class="layer-surface">
+      <span class="layer-label">表层 / surface</span>
+      <div class="prose" style="font-size: 1rem;">
+        <p id="s4-p1">
+          语言学习的核心，是培养一种
+          <span class="crack s4-trigger" data-deep="d4-1" data-annotation="命名行为" data-text="「敏感度」——一个听起来像能力词的词，但它携带的是：你目前不够敏感，这里可以帮你变敏感。">敏感度</span>。
+        </p>
+        <p id="s4-p2">
+          对你自己使用的每一个词，保持
+          <span class="crack s4-trigger" data-deep="d4-2" data-annotation="加压行为" data-text="「警觉」把敏感度升级成了防御状态。语言现在是你需要防范的对象——虽然这个结论没有被明说，它通过词汇的情感色调完成了迁移。">警觉</span>。
+        </p>
+        <p id="s4-p3">
+          因为每一个词，都在做一件事——
+          <span class="crack s4-trigger" data-deep="d4-3" data-annotation="滑义行为" data-text="这句话描述语言在做事。但它同时在做事。它在用「每一个词都在做事」这个命题，让你警觉这句话本身。然后你的警觉就证明了这个命题。这是一个自我验证的陷阱。" data-interrupt="true">即使你不知道</span>。
+        </p>
+      </div>
+    </div>
+
+    <div class="layer-deep">
+      <span class="layer-label">底层 / deep layer</span>
+
+      <div class="deep-item" id="d4-1">
+        <span class="deep-tag">命名行为 / naming</span>
+        「敏感度」将你的当前状态命名为不足。命名完成，缺口出现，产品/方法论/权威填入。
+      </div>
+
+      <div class="deep-item" id="d4-2">
+        <span class="deep-tag">加压行为 / pressurizing</span>
+        「警觉」给「敏感度」施加了情感压力。现在你不只是要学习，你要防范。焦虑密度上升。
+      </div>
+
+      <div class="deep-item" id="d4-3">
+        <span class="deep-tag">滑义行为 / meaning-sliding</span>
+        「即使你不知道」完成了滑义：从描述语言，变成了对你当前状态的判断。你被纳入了「不知道」的那一类。
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 5 — PHASE TRANSITION
+══════════════════════════════════════════ -->
+<section id="screen-5">
+  <div id="phase-container">
+    <div class="surface-text" id="surface-text-5">
+      <p>现在你知道了语言是如何运作的。</p>
+      <p>你知道了命名、加压、滑义、相变。</p>
+      <p>你获得了一种新的意识。</p>
+      <p>你可以更自由地使用你的语言了。</p>
+    </div>
+
+    <div class="deep-flood" id="deep-flood">
+      <p>// 相变行为 / phase transition</p>
+      <br>
+      <p>「现在你知道了」——命名行为。把你定位为刚刚获得知识的人。</p>
+      <p>「你获得了一种新的意识」——加压行为。把「知道」升级为「意识」，意识比知识更高级。</p>
+      <p>「更自由地使用你的语言」——</p>
+      <p>你在哪里看到过这句话？</p>
+      <br>
+      <p style="color: var(--crack);">第一屏。</p>
+      <p style="color: var(--crack);">这个网站用四屏的内容，把你带回了起点。</p>
+      <p style="color: var(--crack);">你以为你在学习识别语言的操作。</p>
+      <p style="color: var(--crack);">你在被语言操作。</p>
+      <br>
+      <p>这不是比喻。这就是它正在做的事。</p>
+      <p>your language。</p>
+      <p>从来都不是你的。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 6 — REVEAL / FRAMEWORK
+══════════════════════════════════════════ -->
+<section id="screen-6">
+  <p class="reveal-title" id="reveal-title">你刚才经历的，有一个名字</p>
+
+  <div class="four-behaviors" id="four-behaviors">
+    <div class="behavior-cell">
+      <div class="behavior-num">01</div>
+      <span class="behavior-name">命名行为</span>
+      <span class="behavior-en">naming</span>
+    </div>
+    <div class="behavior-cell">
+      <div class="behavior-num">02</div>
+      <span class="behavior-name">加压行为</span>
+      <span class="behavior-en">pressurizing</span>
+    </div>
+    <div class="behavior-cell">
+      <div class="behavior-num">03</div>
+      <span class="behavior-name">滑义行为</span>
+      <span class="behavior-en">meaning-sliding</span>
+    </div>
+    <div class="behavior-cell">
+      <div class="behavior-num">04</div>
+      <span class="behavior-name">相变行为</span>
+      <span class="behavior-en">phase transition</span>
+    </div>
+  </div>
+
+  <p class="final-line" id="final-line">
+    道德语言不是谎言。<br>
+    它是<strong>选择了携带方向的词</strong>，<br>
+    一步一步，带你到它想去的地方。
+  </p>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 7 — USER INPUT
+══════════════════════════════════════════ -->
+<section id="screen-7">
+  <div class="input-wrapper">
+    <span class="input-label">— 现在，把你的语言交给我 / now give me your language —</span>
+    <textarea
+      id="user-input"
+      placeholder="输入任何一段话——新闻标题，广告词，有人对你说过的话，或者你自己写的句子。"
+      rows="5"
+    ></textarea>
+    <br>
+    <button class="analyze-btn" id="analyze-btn" onclick="analyzeText()">拆解它 / dissect</button>
+    <div class="loading-dots" id="loading-dots">正在拆解 ...</div>
+    <div id="analysis-output">
+      <div class="analysis-row" id="ar-1">
+        <span class="analysis-tag">命名行为 / naming</span>
+        <div class="analysis-content" id="ac-1"></div>
+      </div>
+      <div class="analysis-row" id="ar-2">
+        <span class="analysis-tag">加压行为 / pressurizing</span>
+        <div class="analysis-content" id="ac-2"></div>
+      </div>
+      <div class="analysis-row" id="ar-3">
+        <span class="analysis-tag">滑义行为 / meaning-sliding</span>
+        <div class="analysis-content" id="ac-3"></div>
+      </div>
+      <div class="analysis-row" id="ar-4">
+        <span class="analysis-tag">相变行为 / phase transition</span>
+        <div class="analysis-content" id="ac-4"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════ -->
+<footer>
+  <span class="footer-mark">yourlanguage — 魏珏然</span>
+  <a href="https://mellowwei.github.io/MellowWei/" class="footer-link" target="_blank">← 返回主站</a>
+</footer>
+
+<script>
+// ── PROGRESS LINE ──
+window.addEventListener('scroll', () => {
+  const scrolled = window.scrollY;
+  const total = document.documentElement.scrollHeight - window.innerHeight;
+  const pct = (scrolled / total) * 100;
+  document.getElementById('progress-line').style.width = pct + '%';
+});
+
+// ── ANNOTATION POPUP ──
+const annotation = document.getElementById('annotation');
+let annotationTimeout;
+
+document.querySelectorAll('.crack').forEach(el => {
+  el.addEventListener('mouseenter', (e) => {
+    const tag = el.dataset.annotation;
+    const text = el.dataset.text;
+    if (!tag || !text) return;
+
+    annotation.innerHTML = `<span class="annotation-tag">${tag}</span>${text}`;
+    annotation.classList.add('visible');
+    positionAnnotation(e);
+  });
+
+  el.addEventListener('mousemove', positionAnnotation);
+
+  el.addEventListener('mouseleave', () => {
+    annotation.classList.remove('visible');
+  });
+
+  el.addEventListener('click', () => {
+    el.classList.toggle('activated');
+    if (el.dataset.interrupt === 'true') {
+      triggerInterrupt(el.dataset.text);
+    }
+  });
+});
+
+function positionAnnotation(e) {
+  const x = e.clientX + 18;
+  const y = e.clientY + 18;
+  const w = annotation.offsetWidth || 340;
+  const h = annotation.offsetHeight || 120;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  annotation.style.left = (x + w > vw ? x - w - 36 : x) + 'px';
+  annotation.style.top  = (y + h > vh ? y - h - 36 : y) + 'px';
+}
+
+// ── INTERRUPT OVERLAY ──
+function triggerInterrupt(text) {
+  document.getElementById('interrupt-text').textContent = text;
+  document.getElementById('interrupt-overlay').classList.add('active');
+}
+
+function closeInterrupt() {
+  document.getElementById('interrupt-overlay').classList.remove('active');
+}
+
+// ── SPLIT SCREEN DEEP LAYER TRIGGERS ──
+document.querySelectorAll('.s4-trigger').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    const deepId = el.dataset.deep;
+    if (deepId) {
+      document.querySelectorAll('.deep-item').forEach(d => d.classList.remove('fired'));
+      document.getElementById(deepId).classList.add('fired');
+    }
+  });
+});
+
+// ── INTERSECTION OBSERVER ──
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const el = entry.target;
+
+      // Interrupt block
+      if (el.classList.contains('interrupt-block')) {
+        el.classList.add('visible');
+      }
+
+      // Phase transition
+      if (el.id === 'phase-container') {
+        setTimeout(() => {
+          document.getElementById('surface-text-5').classList.add('drowned');
+          document.getElementById('deep-flood').classList.add('flooded');
+        }, 800);
+      }
+
+      // Reveal screen
+      if (el.id === 'screen-6') {
+        document.getElementById('reveal-title').classList.add('visible');
+        document.getElementById('four-behaviors').classList.add('visible');
+        document.getElementById('final-line').classList.add('visible');
+      }
+    }
+  });
+}, { threshold: 0.35 });
+
+document.querySelectorAll('.interrupt-block').forEach(el => observer.observe(el));
+observer.observe(document.getElementById('phase-container'));
+observer.observe(document.getElementById('screen-6'));
+
+// ── AI ANALYSIS ──
+async function analyzeText() {
+  const input = document.getElementById('user-input').value.trim();
+  if (!input) return;
+
+  const btn = document.getElementById('analyze-btn');
+  const loading = document.getElementById('loading-dots');
+  const output = document.getElementById('analysis-output');
+
+  btn.disabled = true;
+  loading.classList.add('active');
+  output.style.display = 'none';
+  ['ar-1','ar-2','ar-3','ar-4'].forEach(id => {
+    document.getElementById(id).classList.remove('visible');
+  });
+
+  const systemPrompt = `你是一个语言逻辑分析系统。你的任务是用四行为结构拆解用户提供的任何文本：
+
+命名行为（naming）：找出文本中的关键命名选择——哪些词、短语或分类正在给对象贴标签，这些命名携带了什么隐含前提？
+
+加压行为（pressurizing）：找出文本如何给命名施加情感或逻辑密度——重复、强调、情感词汇、权威感、紧迫感是如何让命名变得"理所当然"的？
+
+滑义行为（meaning-sliding）：找出意义在哪里发生了悄悄的替换——一个词的含义是如何从A滑向B，而读者没有被明确告知这个替换？
+
+相变行为（phase transition）：描述经过上述三步之后，读者的认知或情感状态发生了什么性质的变化——什么变成了"常识"，什么前提被植入，读者在哪里被带去了他们没有明确同意去的地方？
+
+每个行为的分析限制在3-5句话内。语言要精准、冷静、不做道德判断——只描述机制。用中文回答。
+
+输出格式（严格JSON，不要包含任何其他文字）：
+{"naming":"...","pressurizing":"...","sliding":"...","transition":"..."}`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: input }]
+      })
+    });
+
+    const data = await response.json();
+    const rawText = data.content.map(b => b.text || '').join('');
+    const clean = rawText.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+
+    document.getElementById('ac-1').textContent = parsed.naming;
+    document.getElementById('ac-2').textContent = parsed.pressurizing;
+    document.getElementById('ac-3').textContent = parsed.sliding;
+    document.getElementById('ac-4').textContent = parsed.transition;
+
+    output.style.display = 'block';
+    ['ar-1','ar-2','ar-3','ar-4'].forEach((id, i) => {
+      setTimeout(() => {
+        document.getElementById(id).classList.add('visible');
+      }, i * 200);
+    });
+
+  } catch (err) {
+    document.getElementById('ac-1').textContent = '分析失败，请重试。';
+    document.getElementById('ar-1').classList.add('visible');
+    output.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    loading.classList.remove('active');
+  }
+}
+
+// Enter key
+document.getElementById('user-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && e.metaKey) analyzeText();
+});
+</script>
+</body>
+</html>
