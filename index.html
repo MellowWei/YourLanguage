@@ -115,17 +115,29 @@ body.lang-de .lbtn[data-l="de"]::after{background:var(--de);transform:scaleX(1);
 #rule-input-row{
   display:flex;align-items:center;gap:0.6rem;
   opacity:0;transition:opacity 0.4s;
-  margin-top:0.2rem;
+  margin-top:0.4rem;
+  cursor:text;
 }
 #rule-input-row.shown{opacity:1;}
+#rule-input-row:focus-within{
+  outline:1px solid var(--acc);
+  outline-offset:4px;
+}
 .terminal-prompt{color:var(--acc);}
 #rule-input{
-  flex:1;background:transparent;border:none;border-bottom:1px solid var(--border);
+  flex:1;background:transparent;border:none;
   color:var(--text);font-family:var(--mono);font-size:0.72rem;
-  padding:0.2rem 0;outline:none;transition:border-color 0.3s;
+  padding:0.2rem 0;outline:none;
+  caret-color:var(--acc);
 }
-#rule-input:focus{border-color:var(--acc);}
 #rule-input::placeholder{color:var(--ghost);}
+.rule-submit-inline{
+  font-family:var(--mono);font-size:0.52rem;letter-spacing:0.12em;
+  text-transform:uppercase;background:transparent;
+  border:1px solid var(--ghost);color:var(--ghost);
+  padding:0.2rem 0.7rem;cursor:pointer;transition:all 0.3s;white-space:nowrap;
+}
+.rule-submit-inline:hover{border-color:var(--acc);color:var(--acc);}
 
 /* revelation */
 .revelation{display:none;width:100%;margin-top:1.4rem;border:1px solid var(--dim);padding:1.4rem 2rem;position:relative;animation:revealIn 0.6s ease forwards;}
@@ -305,11 +317,11 @@ body.lang-de .narrative-position{color:var(--de);}
       <div id="rule-block">
         <span class="terminal-line" id="tl-1">&gt; <span id="tl-1-text">initializing rule search...</span></span>
         <span class="terminal-line" id="tl-2">&gt; <span id="tl-2-text">scanning for rule structure...</span></span>
-        <span class="terminal-line" id="tl-3">&gt; <span class="terminal-cursor"></span></span>
         <span class="terminal-divider" id="tl-div"></span>
-        <div id="rule-input-row">
+        <div id="rule-input-row" onclick="document.getElementById('rule-input').focus()">
           <span class="terminal-prompt">&gt;</span>
           <input type="text" id="rule-input" autocomplete="off" onkeydown="if(event.key==='Enter')submitRule()">
+          <button class="rule-submit-inline" onclick="submitRule()">enter</button>
         </div>
       </div>
 
@@ -611,7 +623,7 @@ function restartGame(){
     document.querySelectorAll('.revelation').forEach(r=>r.classList.remove('shown'));
     document.querySelectorAll('[id^="next-"]').forEach(n=>n.style.display='none');
     // reset terminal
-    ['tl-1','tl-2','tl-3','tl-div'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('shown');});
+    ['tl-1','tl-2','tl-div'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('shown');});
     document.getElementById('rule-input-row').classList.remove('shown');
     document.getElementById('rule-input').disabled=false;
     document.getElementById('tr-submit').disabled=false;
@@ -709,12 +721,17 @@ async function submitTranslation(){
 
 // L5
 function initRuleGame(){
-  ['tl-1','tl-2','tl-3'].forEach((id,i)=>{setTimeout(()=>{const el=document.getElementById(id);if(el)el.classList.add('shown');},i*600);});
+  ['tl-1','tl-2'].forEach((id,i)=>{
+    setTimeout(()=>{const el=document.getElementById(id);if(el)el.classList.add('shown');},i*600);
+  });
   setTimeout(()=>{
-    document.getElementById('tl-div').classList.add('shown');
-    document.getElementById('rule-input-row').classList.add('shown');
-    document.getElementById('rule-input').focus();
-  },1800);
+    const div=document.getElementById('tl-div');
+    const row=document.getElementById('rule-input-row');
+    if(div)div.classList.add('shown');
+    if(row)row.classList.add('shown');
+    const inp=document.getElementById('rule-input');
+    if(inp)inp.focus();
+  },1400);
 }
 
 async function submitRule(){
