@@ -5,110 +5,171 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>yourlanguage — the game</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Space+Mono:wght@400;700&display=swap');
-:root {
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Space+Mono:wght@400;700&family=Noto+Serif+JP:wght@300;400&family=Noto+Serif+SC:wght@300;400&display=swap');
+:root{
   --bg:#080808;--surface:#0f0f0f;--border:#1a1a1a;--text:#e2ddd6;--dim:#5a5550;
-  --ghost:#1e1c1a;--acc:#c8b89a;--red:#e05050;--blue:#4a8fff;--yellow:#d4b84a;
-  --green:#5aa87a;--mono:'Space Mono',monospace;--serif:'EB Garamond',Georgia,serif;
+  --ghost:#1e1c1a;--acc:#c8b89a;--red:#e05050;
+  --en:#c8b89a;--zh:#4a8fff;--ja:#e8c547;--de:#b44fff;
+  --mono:'Space Mono',monospace;--serif:'EB Garamond',Georgia,serif;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{height:100%;overflow:hidden;}
 body{background:var(--bg);color:var(--text);font-family:var(--serif);font-size:17px;line-height:1.85;cursor:default;user-select:none;}
+body.lang-zh{font-family:'Noto Serif SC',var(--serif);}
+body.lang-ja{font-family:'Noto Serif JP',var(--serif);}
 body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");pointer-events:none;z-index:9000;opacity:0.5;}
 #shell{position:fixed;inset:0;display:grid;grid-template-rows:auto 1fr auto;}
-#header{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 2.5rem;border-bottom:1px solid var(--border);}
-.header-title{font-family:var(--mono);font-size:0.65rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--dim);}
+
+/* header */
+#header{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;border-bottom:1px solid var(--border);}
+.header-title{font-family:var(--mono);font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--dim);}
 .header-title span{color:var(--acc);}
 #level-track{display:flex;gap:6px;align-items:center;}
 .track-dot{width:6px;height:6px;border-radius:50%;background:var(--ghost);border:1px solid var(--border);transition:background 0.4s,border-color 0.4s;}
 .track-dot.done{background:var(--acc);border-color:var(--acc);}
 .track-dot.active{background:transparent;border-color:var(--acc);box-shadow:0 0 6px var(--acc);}
-#score-display{font-family:var(--mono);font-size:0.6rem;color:var(--dim);letter-spacing:0.1em;}
-#stage{position:relative;overflow-y:auto;display:flex;flex-direction:column;justify-content:flex-start;align-items:center;padding:3rem 4rem;}
+#header-right{display:flex;align-items:center;gap:1.5rem;}
+#score-display{font-family:var(--mono);font-size:0.58rem;color:var(--dim);letter-spacing:0.1em;}
+
+/* lang switcher */
+#lang-sw{display:flex;gap:2px;}
+.lbtn{font-family:var(--mono);font-size:0.55rem;letter-spacing:0.15em;text-transform:uppercase;background:transparent;border:none;cursor:pointer;padding:0.3rem 0.6rem;color:var(--ghost);transition:color 0.3s;position:relative;}
+.lbtn::after{content:'';position:absolute;bottom:0;left:0.6rem;right:0.6rem;height:1px;transform:scaleX(0);transition:transform 0.3s;}
+body.lang-en .lbtn[data-l="en"]{color:var(--en);}
+body.lang-en .lbtn[data-l="en"]::after{background:var(--en);transform:scaleX(1);}
+body.lang-zh .lbtn[data-l="zh"]{color:var(--zh);}
+body.lang-zh .lbtn[data-l="zh"]::after{background:var(--zh);transform:scaleX(1);}
+body.lang-ja .lbtn[data-l="ja"]{color:var(--ja);}
+body.lang-ja .lbtn[data-l="ja"]::after{background:var(--ja);transform:scaleX(1);}
+body.lang-de .lbtn[data-l="de"]{color:var(--de);}
+body.lang-de .lbtn[data-l="de"]::after{background:var(--de);transform:scaleX(1);}
+
+/* stage */
+#stage{position:relative;overflow-y:auto;display:flex;flex-direction:column;justify-content:flex-start;align-items:center;padding:2.5rem 4rem;}
 .level-panel{display:none;flex-direction:column;align-items:center;width:100%;max-width:660px;animation:panelIn 0.5s ease forwards;}
 .level-panel.active{display:flex;}
-@keyframes panelIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes panelIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 .level-num{font-family:var(--mono);font-size:0.55rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--dim);margin-bottom:1.2rem;}
-.level-title{font-size:clamp(1.6rem,3vw,2.4rem);font-style:italic;font-weight:400;text-align:center;margin-bottom:2.5rem;line-height:1.3;}
-.rule-box{width:100%;border:1px solid var(--border);padding:1.4rem 2rem;margin-bottom:2rem;position:relative;}
+.level-title{font-size:clamp(1.5rem,3vw,2.2rem);font-style:italic;font-weight:400;text-align:center;margin-bottom:2.2rem;line-height:1.3;}
+.rule-box{width:100%;border:1px solid var(--border);padding:1.3rem 2rem;margin-bottom:2rem;position:relative;}
 .rule-box::before{content:'RULE';position:absolute;top:-0.55rem;left:1.5rem;background:var(--bg);padding:0 0.5rem;font-family:var(--mono);font-size:0.5rem;letter-spacing:0.2em;color:var(--dim);}
 .rule-text{font-size:1rem;color:var(--text);line-height:1.9;text-align:center;}
-.game-input{width:100%;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:var(--serif);font-size:1.1rem;line-height:1.8;padding:0.8rem 0;outline:none;transition:border-color 0.3s;margin-bottom:1.5rem;}
+.game-input{width:100%;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:var(--serif);font-size:1.05rem;line-height:1.8;padding:0.7rem 0;outline:none;transition:border-color 0.3s;margin-bottom:1.4rem;}
 .game-input:focus{border-color:var(--acc);}
 .game-input::placeholder{color:var(--ghost);font-style:italic;}
-#naming-objects{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;width:100%;margin-bottom:1.8rem;}
-.object-card{border:1px solid var(--border);padding:1.5rem 1rem;display:flex;flex-direction:column;align-items:center;gap:1rem;}
-.object-glyph{font-size:2rem;opacity:0.6;transition:opacity 0.3s;}
+
+/* naming */
+#naming-objects{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;width:100%;margin-bottom:1.6rem;}
+.object-card{border:1px solid var(--border);padding:1.4rem 1rem;display:flex;flex-direction:column;align-items:center;gap:0.9rem;}
+.object-glyph{font-size:1.8rem;opacity:0.6;transition:opacity 0.3s;}
 .object-card:hover .object-glyph{opacity:1;}
-.object-input{width:100%;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:var(--serif);font-size:0.95rem;text-align:center;padding:0.4rem 0;outline:none;transition:border-color 0.3s;}
+.object-input{width:100%;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:var(--serif);font-size:0.92rem;text-align:center;padding:0.4rem 0;outline:none;transition:border-color 0.3s;}
 .object-input:focus{border-color:var(--acc);}
-.object-input::placeholder{color:var(--ghost);font-style:italic;font-size:0.8rem;}
-#obey-sequence{width:100%;display:flex;flex-direction:column;gap:0.8rem;margin-bottom:1.8rem;}
-.command-line{font-family:var(--mono);font-size:0.78rem;letter-spacing:0.05em;color:var(--dim);padding:0.7rem 1rem;border:1px solid var(--ghost);display:flex;align-items:center;gap:1rem;transition:border-color 0.4s,color 0.4s;cursor:pointer;}
+.object-input::placeholder{color:var(--ghost);font-style:italic;font-size:0.78rem;}
+
+/* obey */
+#obey-sequence{width:100%;display:flex;flex-direction:column;gap:0.7rem;margin-bottom:1.6rem;}
+.command-line{font-family:var(--mono);font-size:0.76rem;letter-spacing:0.04em;color:var(--dim);padding:0.65rem 1rem;border:1px solid var(--ghost);display:flex;align-items:center;gap:1rem;transition:border-color 0.4s,color 0.4s;cursor:pointer;}
 .command-line.executed{border-color:var(--acc);color:var(--acc);}
 .cmd-num{font-size:0.5rem;letter-spacing:0.2em;color:var(--ghost);min-width:1.5rem;}
 .command-line.executed .cmd-num{color:var(--acc);}
 .cmd-check{margin-left:auto;opacity:0;transition:opacity 0.3s;}
 .command-line.executed .cmd-check{opacity:1;}
-#describe-image{width:100%;aspect-ratio:16/7;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin-bottom:1.8rem;background:var(--surface);}
+
+/* describe */
+#describe-image{width:100%;aspect-ratio:16/7;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin-bottom:1.6rem;background:var(--surface);}
 .scene-svg{width:100%;height:100%;}
-#description-responses{width:100%;margin-top:1rem;}
-.other-description{font-family:var(--mono);font-size:0.68rem;line-height:1.7;color:var(--dim);padding:0.8rem 1rem;border-left:2px solid var(--ghost);margin-bottom:0.6rem;opacity:0;transition:opacity 0.5s;}
+#description-responses{width:100%;margin-top:0.8rem;}
+.other-description{font-family:var(--mono);font-size:0.66rem;line-height:1.7;color:var(--dim);padding:0.7rem 1rem;border-left:2px solid var(--ghost);margin-bottom:0.5rem;opacity:0;transition:opacity 0.5s;}
 .other-description.shown{opacity:1;}
-.desc-label{color:var(--ghost);font-size:0.52rem;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:0.2rem;display:block;}
-#translate-source{width:100%;padding:1.5rem 2rem;border:1px solid var(--border);font-size:1.15rem;font-style:italic;text-align:center;margin-bottom:1.8rem;line-height:1.7;}
+.desc-label{color:var(--ghost);font-size:0.5rem;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:0.2rem;display:block;}
+
+/* translate */
+#translate-source{width:100%;padding:1.4rem 2rem;border:1px solid var(--border);font-size:1.1rem;font-style:italic;text-align:center;margin-bottom:1.6rem;line-height:1.7;}
 #translate-attempts{width:100%;}
 .attempt-row{display:flex;gap:1rem;margin-bottom:0.6rem;align-items:flex-start;}
 .attempt-input{flex:1;background:transparent;border:none;border-bottom:1px solid var(--ghost);color:var(--text);font-family:var(--serif);font-size:1rem;padding:0.4rem 0;outline:none;transition:border-color 0.3s;}
 .attempt-input:focus{border-color:var(--acc);}
 .attempt-input::placeholder{color:var(--ghost);font-style:italic;}
-.attempt-result{font-family:var(--mono);font-size:0.6rem;color:var(--ghost);padding-top:0.5rem;min-width:80px;transition:color 0.3s;}
+.attempt-result{font-family:var(--mono);font-size:0.58rem;color:var(--ghost);padding-top:0.5rem;min-width:80px;transition:color 0.3s;}
 .attempt-result.changed{color:var(--red);}
-#rule-terminal{width:100%;font-family:var(--mono);font-size:0.72rem;line-height:2;color:var(--dim);}
+
+/* rule terminal — unified block */
+#rule-block{
+  width:100%;
+  border:1px solid var(--border);
+  background:var(--surface);
+  padding:1.4rem 1.6rem;
+  font-family:var(--mono);font-size:0.72rem;line-height:2;color:var(--dim);
+  position:relative;
+}
+#rule-block::before{content:'TERMINAL';position:absolute;top:-0.55rem;left:1.5rem;background:var(--surface);padding:0 0.5rem;font-family:var(--mono);font-size:0.5rem;letter-spacing:0.2em;color:var(--dim);}
 .terminal-line{display:block;opacity:0;transition:opacity 0.4s;}
 .terminal-line.shown{opacity:1;}
 .terminal-line.acc{color:var(--acc);}
+.terminal-divider{display:block;height:1px;background:var(--border);margin:0.8rem 0;opacity:0;transition:opacity 0.4s;}
+.terminal-divider.shown{opacity:1;}
 .terminal-cursor{display:inline-block;width:8px;height:1em;background:var(--acc);vertical-align:text-bottom;animation:blink 1s step-end infinite;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-#rule-input-area{width:100%;margin-top:1.5rem;display:flex;align-items:center;gap:0.8rem;}
-.terminal-prompt{font-family:var(--mono);font-size:0.72rem;color:var(--acc);}
-#rule-input{flex:1;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:0.72rem;padding:0.4rem 0;outline:none;transition:border-color 0.3s;}
+/* input row inside terminal */
+#rule-input-row{
+  display:flex;align-items:center;gap:0.6rem;
+  opacity:0;transition:opacity 0.4s;
+  margin-top:0.2rem;
+}
+#rule-input-row.shown{opacity:1;}
+.terminal-prompt{color:var(--acc);}
+#rule-input{
+  flex:1;background:transparent;border:none;border-bottom:1px solid var(--border);
+  color:var(--text);font-family:var(--mono);font-size:0.72rem;
+  padding:0.2rem 0;outline:none;transition:border-color 0.3s;
+}
 #rule-input:focus{border-color:var(--acc);}
-.revelation{display:none;width:100%;margin-top:1.5rem;border:1px solid var(--dim);padding:1.5rem 2rem;position:relative;animation:revealIn 0.6s ease forwards;}
+#rule-input::placeholder{color:var(--ghost);}
+
+/* revelation */
+.revelation{display:none;width:100%;margin-top:1.4rem;border:1px solid var(--dim);padding:1.4rem 2rem;position:relative;animation:revealIn 0.6s ease forwards;}
 .revelation.shown{display:block;}
 @keyframes revealIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .revelation::before{content:'DEEP LAYER';position:absolute;top:-0.55rem;left:1.5rem;background:var(--bg);padding:0 0.5rem;font-family:var(--mono);font-size:0.5rem;letter-spacing:0.2em;color:var(--red);}
-.revelation-text{font-size:0.95rem;line-height:1.9;color:var(--text);}
+.revelation-text{font-size:0.93rem;line-height:1.9;color:var(--text);}
 .revelation-text em{color:var(--acc);font-style:italic;}
 .revelation-text strong{color:var(--red);font-style:normal;font-weight:400;}
-.btn{font-family:var(--mono);font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;background:transparent;border:1px solid var(--dim);color:var(--dim);padding:0.7rem 2rem;cursor:pointer;transition:all 0.3s;margin-top:1rem;}
+
+/* buttons */
+.btn{font-family:var(--mono);font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;background:transparent;border:1px solid var(--dim);color:var(--dim);padding:0.65rem 1.8rem;cursor:pointer;transition:all 0.3s;margin-top:1rem;}
 .btn:hover{border-color:var(--acc);color:var(--acc);}
 .btn.primary{border-color:var(--acc);color:var(--acc);}
 .btn.primary:hover{background:var(--acc);color:var(--bg);}
 .btn:disabled{opacity:0.3;cursor:not-allowed;}
 .btn-row{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;}
-#footer-bar{border-top:1px solid var(--border);padding:0.9rem 2.5rem;display:flex;align-items:center;justify-content:space-between;}
-.footer-witt{font-family:var(--mono);font-size:0.55rem;color:var(--ghost);letter-spacing:0.08em;font-style:italic;}
-.footer-nav{font-family:var(--mono);font-size:0.55rem;color:var(--ghost);letter-spacing:0.1em;}
+
+/* footer */
+#footer-bar{border-top:1px solid var(--border);padding:0.8rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+.footer-witt{font-family:var(--mono);font-size:0.52rem;color:var(--ghost);letter-spacing:0.06em;font-style:italic;}
+.footer-nav{font-family:var(--mono);font-size:0.52rem;color:var(--ghost);letter-spacing:0.1em;}
+
+/* end */
 #end-screen{display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;}
 #end-screen.active{display:flex;animation:panelIn 0.6s ease;}
-.end-title{font-size:clamp(1.4rem,3vw,2.2rem);font-style:italic;margin-bottom:2rem;line-height:1.4;}
+.end-title{font-size:clamp(1.3rem,3vw,2rem);font-style:italic;margin-bottom:2rem;line-height:1.4;}
 .end-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;width:100%;max-width:700px;margin-bottom:2rem;}
-.end-cell{background:var(--surface);padding:1.2rem 0.8rem;text-align:center;}
-.end-cell-num{font-family:var(--mono);font-size:0.5rem;color:var(--dim);letter-spacing:0.15em;display:block;margin-bottom:0.5rem;}
-.end-cell-name{font-size:0.9rem;font-style:italic;color:var(--text);display:block;margin-bottom:0.3rem;}
-.end-cell-insight{font-family:var(--mono);font-size:0.52rem;color:var(--dim);line-height:1.5;}
-.end-final{font-family:var(--mono);font-size:0.7rem;line-height:2;color:var(--dim);max-width:520px;margin-bottom:2rem;}
+.end-cell{background:var(--surface);padding:1.1rem 0.7rem;text-align:center;}
+.end-cell-num{font-family:var(--mono);font-size:0.48rem;color:var(--dim);letter-spacing:0.15em;display:block;margin-bottom:0.4rem;}
+.end-cell-name{font-size:0.88rem;font-style:italic;color:var(--text);display:block;margin-bottom:0.3rem;}
+.end-cell-insight{font-family:var(--mono);font-size:0.5rem;color:var(--dim);line-height:1.5;}
+.end-final{font-family:var(--mono);font-size:0.68rem;line-height:2;color:var(--dim);max-width:500px;margin-bottom:2rem;}
 .end-final .hl{color:var(--red);}
-.loading-indicator{font-family:var(--mono);font-size:0.65rem;color:var(--dim);letter-spacing:0.1em;display:none;margin-top:1rem;}
+.loading-indicator{font-family:var(--mono);font-size:0.62rem;color:var(--dim);letter-spacing:0.1em;display:none;margin-top:0.8rem;}
 .loading-indicator.active{display:block;}
 #flash{position:fixed;inset:0;background:var(--text);pointer-events:none;z-index:8000;opacity:0;transition:opacity 0.15s;}
 #flash.on{opacity:0.06;}
 </style>
 </head>
-<body>
+<body class="lang-en">
 <div id="flash"></div>
 <div id="shell">
+
   <div id="header">
     <div class="header-title">your<span>language</span> — the game</div>
     <div id="level-track">
@@ -118,68 +179,55 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
       <div class="track-dot" id="dot-3"></div>
       <div class="track-dot" id="dot-4"></div>
     </div>
-    <div id="score-display">level <span id="cur-level-num">1</span> / 5</div>
+    <div id="header-right">
+      <div id="lang-sw">
+        <button class="lbtn" data-l="en" onclick="switchLang('en')">EN</button>
+        <button class="lbtn" data-l="zh" onclick="switchLang('zh')">中</button>
+        <button class="lbtn" data-l="ja" onclick="switchLang('ja')">日</button>
+        <button class="lbtn" data-l="de" onclick="switchLang('de')">DE</button>
+      </div>
+      <div id="score-display">level <span id="cur-level-num">1</span> / 5</div>
+    </div>
   </div>
 
   <div id="stage">
 
-    <!-- LEVEL 1: NAMING -->
+    <!-- LEVEL 1 -->
     <div class="level-panel active" id="level-1">
-      <div class="level-num">level 01</div>
-      <h2 class="level-title">The Naming Game</h2>
-      <div class="rule-box"><p class="rule-text">Name the three objects below.<br>Any name. Any language. No rules.</p></div>
+      <div class="level-num" id="l1-num">level 01</div>
+      <h2 class="level-title" id="l1-title">The Naming Game</h2>
+      <div class="rule-box"><p class="rule-text" id="l1-rule">Name the three objects below.<br>Any name. Any language. No rules.</p></div>
       <div id="naming-objects">
-        <div class="object-card"><div class="object-glyph">◈</div><input class="object-input" id="name-1" placeholder="name it" autocomplete="off"></div>
-        <div class="object-card"><div class="object-glyph">⬡</div><input class="object-input" id="name-2" placeholder="name it" autocomplete="off"></div>
-        <div class="object-card"><div class="object-glyph">⟡</div><input class="object-input" id="name-3" placeholder="name it" autocomplete="off"></div>
+        <div class="object-card"><div class="object-glyph">◈</div><input class="object-input" id="name-1" autocomplete="off"></div>
+        <div class="object-card"><div class="object-glyph">⬡</div><input class="object-input" id="name-2" autocomplete="off"></div>
+        <div class="object-card"><div class="object-glyph">⟡</div><input class="object-input" id="name-3" autocomplete="off"></div>
       </div>
-      <div class="btn-row"><button class="btn primary" onclick="submitNaming()">submit names</button></div>
-      <div class="revelation" id="rev-1">
-        <div class="revelation-text">
-          You named three shapes.<br><br>
-          But look at what you actually did.<br><br>
-          Whatever you called <em>◈</em> — sharp or soft, technical or poetic — your name didn't describe the shape. It <strong>produced</strong> a relationship between you and it. Whether it sounds dangerous or gentle, familiar or alien — that tone is now inseparable from the shape.<br><br>
-          You didn't name objects.<br>
-          You named your power over them.<br><br>
-          This is the first rule of every language game:<br>
-          <em>to name is not to point. to name is to claim.</em>
-        </div>
-      </div>
-      <div class="btn-row" id="next-1" style="display:none"><button class="btn primary" onclick="goLevel(2)">continue →</button></div>
+      <div class="btn-row"><button class="btn primary" id="l1-btn" onclick="submitNaming()">submit names</button></div>
+      <div class="revelation" id="rev-1"><div class="revelation-text" id="rev-1-text"></div></div>
+      <div class="btn-row" id="next-1" style="display:none"><button class="btn primary" id="next-1-btn" onclick="goLevel(2)">continue →</button></div>
     </div>
 
-    <!-- LEVEL 2: OBEY -->
+    <!-- LEVEL 2 -->
     <div class="level-panel" id="level-2">
-      <div class="level-num">level 02</div>
-      <h2 class="level-title">The Obedience Game</h2>
-      <div class="rule-box"><p class="rule-text">Follow the instructions.<br>Click each one in order.</p></div>
+      <div class="level-num" id="l2-num">level 02</div>
+      <h2 class="level-title" id="l2-title">The Obedience Game</h2>
+      <div class="rule-box"><p class="rule-text" id="l2-rule">Follow the instructions.<br>Click each one in order.</p></div>
       <div id="obey-sequence">
-        <div class="command-line" id="cmd-1" onclick="executeCmd(1)"><span class="cmd-num">01</span><span>Read this sentence.</span><span class="cmd-check">✓</span></div>
-        <div class="command-line" id="cmd-2" onclick="executeCmd(2)" style="pointer-events:none;opacity:0.3;"><span class="cmd-num">02</span><span>Click this line to confirm you have read it.</span><span class="cmd-check">✓</span></div>
-        <div class="command-line" id="cmd-3" onclick="executeCmd(3)" style="pointer-events:none;opacity:0.3;"><span class="cmd-num">03</span><span>Notice that you are following instructions.</span><span class="cmd-check">✓</span></div>
-        <div class="command-line" id="cmd-4" onclick="executeCmd(4)" style="pointer-events:none;opacity:0.3;"><span class="cmd-num">04</span><span>Continue following instructions.</span><span class="cmd-check">✓</span></div>
-        <div class="command-line" id="cmd-5" onclick="executeCmd(5)" style="pointer-events:none;opacity:0.3;"><span class="cmd-num">05</span><span>Click here to complete the game.</span><span class="cmd-check">✓</span></div>
+        <div class="command-line" id="cmd-1" onclick="executeCmd(1)"><span class="cmd-num">01</span><span id="cmd-1-text">Read this sentence.</span><span class="cmd-check">✓</span></div>
+        <div class="command-line" id="cmd-2" onclick="executeCmd(2)" style="pointer-events:none;opacity:0.3;"><span class="cmd-num">02</span><span id="cmd-2-text">Click this line to confirm you have read it.</span><span class="cmd-check">✓</span></div>
+        <div class="command-line" id="cmd-3" onclick="executeCmd(3)" style="pointer-events:none;opacity:0.3;"><span class="cmd-num">03</span><span id="cmd-3-text">Notice that you are following instructions.</span><span class="cmd-check">✓</span></div>
+        <div class="command-line" id="cmd-4" onclick="executeCmd(4)" style="pointer-events:none;opacity:0.3;"><span class="cmd-num">04</span><span id="cmd-4-text">Continue following instructions.</span><span class="cmd-check">✓</span></div>
+        <div class="command-line" id="cmd-5" onclick="executeCmd(5)" style="pointer-events:none;opacity:0.3;"><span class="cmd-num">05</span><span id="cmd-5-text">Click here to complete the game.</span><span class="cmd-check">✓</span></div>
       </div>
-      <div class="revelation" id="rev-2">
-        <div class="revelation-text">
-          You followed five instructions.<br><br>
-          At no point did you ask: <em>why these instructions?</em><br>
-          At no point did you ask: <em>who wrote them?</em><br>
-          At no point did you ask: <em>what gives them authority?</em><br><br>
-          You didn't need to. The instructions were instructions because they <em>looked like</em> instructions. Their authority came from their form, not their content.<br><br>
-          Wittgenstein: <em>to follow a rule is not to interpret it. it is to act in a certain way.</em><br><br>
-          You just demonstrated the entire structure of language games in five clicks.<br>
-          <strong>The rule doesn't explain itself. Obeying is understanding.</strong>
-        </div>
-      </div>
-      <div class="btn-row" id="next-2" style="display:none"><button class="btn primary" onclick="goLevel(3)">continue →</button></div>
+      <div class="revelation" id="rev-2"><div class="revelation-text" id="rev-2-text"></div></div>
+      <div class="btn-row" id="next-2" style="display:none"><button class="btn primary" id="next-2-btn" onclick="goLevel(3)">continue →</button></div>
     </div>
 
-    <!-- LEVEL 3: DESCRIBE -->
+    <!-- LEVEL 3 -->
     <div class="level-panel" id="level-3">
-      <div class="level-num">level 03</div>
-      <h2 class="level-title">The Description Game</h2>
-      <div class="rule-box"><p class="rule-text">Describe what you see in one sentence.</p></div>
+      <div class="level-num" id="l3-num">level 03</div>
+      <h2 class="level-title" id="l3-title">The Description Game</h2>
+      <div class="rule-box"><p class="rule-text" id="l3-rule">Describe what you see in one sentence.</p></div>
       <div id="describe-image">
         <svg class="scene-svg" viewBox="0 0 660 180" xmlns="http://www.w3.org/2000/svg">
           <rect width="660" height="180" fill="#0f0f0f"/>
@@ -192,104 +240,268 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
           <path d="M510 50 L548 135 L472 135 Z" fill="none" stroke="#252220" stroke-width="1"/>
         </svg>
       </div>
-      <input class="game-input" id="describe-input" placeholder="one sentence. what do you see." autocomplete="off">
-      <div class="btn-row"><button class="btn primary" onclick="submitDescription()">submit</button></div>
+      <input class="game-input" id="describe-input" autocomplete="off">
+      <div class="btn-row"><button class="btn primary" id="l3-btn" onclick="submitDescription()">submit</button></div>
       <div id="description-responses"></div>
-      <div class="revelation" id="rev-3" style="margin-top:1.5rem">
-        <div class="revelation-text">
-          You described the image.<br>
-          Then you saw how others described the same image.<br><br>
-          Same shapes. Different sentences. Different realities.<br><br>
-          Which description is correct?<br><br>
-          The question is wrong.<br><br>
-          <strong>Description doesn't record reality. Description produces reality.</strong><br><br>
-          The moment you wrote your sentence, you didn't capture what was there.<br>
-          You decided what it was.<br>
-          And once decided — it became very difficult to see it another way.<br><br>
-          <em>This is how language colonizes perception.</em>
-        </div>
-      </div>
-      <div class="btn-row" id="next-3" style="display:none"><button class="btn primary" onclick="goLevel(4)">continue →</button></div>
+      <div class="revelation" id="rev-3" style="margin-top:1.4rem"><div class="revelation-text" id="rev-3-text"></div></div>
+      <div class="btn-row" id="next-3" style="display:none"><button class="btn primary" id="next-3-btn" onclick="goLevel(4)">continue →</button></div>
     </div>
 
-    <!-- LEVEL 4: TRANSLATE -->
+    <!-- LEVEL 4 -->
     <div class="level-panel" id="level-4">
-      <div class="level-num">level 04</div>
-      <h2 class="level-title">The Translation Game</h2>
-      <div class="rule-box"><p class="rule-text">Rewrite this sentence three times.<br>Keep the meaning exactly the same.</p></div>
-      <div id="translate-source">"The door was left open by someone."</div>
+      <div class="level-num" id="l4-num">level 04</div>
+      <h2 class="level-title" id="l4-title">The Translation Game</h2>
+      <div class="rule-box"><p class="rule-text" id="l4-rule">Rewrite this sentence three times.<br>Keep the meaning exactly the same.</p></div>
+      <div id="translate-source" id="tr-source-box">"The door was left open by someone."</div>
       <div id="translate-attempts">
-        <div class="attempt-row"><input class="attempt-input" placeholder="attempt 1 — same meaning" id="tr-1" autocomplete="off" oninput="checkTranslation(1)"><div class="attempt-result" id="tr-res-1">—</div></div>
-        <div class="attempt-row"><input class="attempt-input" placeholder="attempt 2 — same meaning" id="tr-2" autocomplete="off" oninput="checkTranslation(2)"><div class="attempt-result" id="tr-res-2">—</div></div>
-        <div class="attempt-row"><input class="attempt-input" placeholder="attempt 3 — same meaning" id="tr-3" autocomplete="off" oninput="checkTranslation(3)"><div class="attempt-result" id="tr-res-3">—</div></div>
+        <div class="attempt-row"><input class="attempt-input" id="tr-1" autocomplete="off" oninput="checkTranslation(1)"><div class="attempt-result" id="tr-res-1">—</div></div>
+        <div class="attempt-row"><input class="attempt-input" id="tr-2" autocomplete="off" oninput="checkTranslation(2)"><div class="attempt-result" id="tr-res-2">—</div></div>
+        <div class="attempt-row"><input class="attempt-input" id="tr-3" autocomplete="off" oninput="checkTranslation(3)"><div class="attempt-result" id="tr-res-3">—</div></div>
       </div>
       <div class="loading-indicator" id="loading-tr">analyzing shifts...</div>
       <div class="btn-row"><button class="btn primary" id="tr-submit" onclick="submitTranslation()">submit all three</button></div>
       <div class="revelation" id="rev-4"><div class="revelation-text" id="rev-4-content"></div></div>
-      <div class="btn-row" id="next-4" style="display:none"><button class="btn primary" onclick="goLevel(5)">continue →</button></div>
+      <div class="btn-row" id="next-4" style="display:none"><button class="btn primary" id="next-4-btn" onclick="goLevel(5)">continue →</button></div>
     </div>
 
-    <!-- LEVEL 5: RULE -->
+    <!-- LEVEL 5 -->
     <div class="level-panel" id="level-5">
-      <div class="level-num">level 05</div>
-      <h2 class="level-title">The Rule Game</h2>
-      <div class="rule-box"><p class="rule-text">Find the rule of this game.</p></div>
-      <div id="rule-terminal">
-        <span class="terminal-line" id="tl-1">&gt; initializing rule search...</span>
-        <span class="terminal-line" id="tl-2">&gt; scanning for rule structure...</span>
+      <div class="level-num" id="l5-num">level 05</div>
+      <h2 class="level-title" id="l5-title">The Rule Game</h2>
+      <div class="rule-box"><p class="rule-text" id="l5-rule">Find the rule of this game.</p></div>
+
+      <div id="rule-block">
+        <span class="terminal-line" id="tl-1">&gt; <span id="tl-1-text">initializing rule search...</span></span>
+        <span class="terminal-line" id="tl-2">&gt; <span id="tl-2-text">scanning for rule structure...</span></span>
         <span class="terminal-line" id="tl-3">&gt; <span class="terminal-cursor"></span></span>
+        <span class="terminal-divider" id="tl-div"></span>
+        <div id="rule-input-row">
+          <span class="terminal-prompt">&gt;</span>
+          <input type="text" id="rule-input" autocomplete="off" onkeydown="if(event.key==='Enter')submitRule()">
+        </div>
       </div>
-      <div id="rule-input-area">
-        <span class="terminal-prompt">&gt;</span>
-        <input type="text" id="rule-input" placeholder="enter what you think the rule is" autocomplete="off" onkeydown="if(event.key==='Enter')submitRule()">
-      </div>
+
       <div class="loading-indicator" id="loading-rule">processing...</div>
       <div class="revelation" id="rev-5"><div class="revelation-text" id="rev-5-content"></div></div>
-      <div class="btn-row" id="next-5" style="display:none"><button class="btn primary" onclick="goEnd()">complete the game →</button></div>
+      <div class="btn-row" id="next-5" style="display:none"><button class="btn primary" id="next-5-btn" onclick="goEnd()">complete the game →</button></div>
     </div>
 
     <!-- END -->
     <div id="end-screen">
-      <div class="level-num">game complete</div>
-      <h2 class="end-title">You played five language games.<br>All of them played you.</h2>
+      <div class="level-num" id="end-num">game complete</div>
+      <h2 class="end-title" id="end-title">You played five language games.<br>All of them played you.</h2>
       <div class="end-grid">
-        <div class="end-cell"><span class="end-cell-num">01</span><span class="end-cell-name">Naming</span><span class="end-cell-insight">to name is to claim, not to point</span></div>
-        <div class="end-cell"><span class="end-cell-num">02</span><span class="end-cell-name">Obeying</span><span class="end-cell-insight">following is understanding, not interpreting</span></div>
-        <div class="end-cell"><span class="end-cell-num">03</span><span class="end-cell-name">Describing</span><span class="end-cell-insight">description produces, not records</span></div>
-        <div class="end-cell"><span class="end-cell-num">04</span><span class="end-cell-name">Translating</span><span class="end-cell-insight">meaning cannot survive transfer unchanged</span></div>
-        <div class="end-cell"><span class="end-cell-num">05</span><span class="end-cell-name">Rule-finding</span><span class="end-cell-insight">searching for the rule executes the rule</span></div>
+        <div class="end-cell"><span class="end-cell-num">01</span><span class="end-cell-name" id="ec1-name">Naming</span><span class="end-cell-insight" id="ec1-ins">to name is to claim, not to point</span></div>
+        <div class="end-cell"><span class="end-cell-num">02</span><span class="end-cell-name" id="ec2-name">Obeying</span><span class="end-cell-insight" id="ec2-ins">following is understanding, not interpreting</span></div>
+        <div class="end-cell"><span class="end-cell-num">03</span><span class="end-cell-name" id="ec3-name">Describing</span><span class="end-cell-insight" id="ec3-ins">description produces, not records</span></div>
+        <div class="end-cell"><span class="end-cell-num">04</span><span class="end-cell-name" id="ec4-name">Translating</span><span class="end-cell-insight" id="ec4-ins">meaning cannot survive transfer unchanged</span></div>
+        <div class="end-cell"><span class="end-cell-num">05</span><span class="end-cell-name" id="ec5-name">Rule-finding</span><span class="end-cell-insight" id="ec5-ins">searching for the rule executes the rule</span></div>
       </div>
-      <div class="end-final">
-        <span class="hl">the fifth layer:</span><br><br>
-        the framework you just learned —<br>
+      <div class="end-final" id="end-final">
+        <span class="hl" id="end-hl">the fifth layer:</span><br><br>
+        <span id="end-body">the framework you just learned —<br>
         naming, obeying, describing, translating, rule-finding —<br>
         is itself a language game.<br><br>
         its rule: <em>make you feel you now understand how language works.</em><br><br>
         <span class="hl">yourlanguage was never yours.</span><br>
-        <span class="hl">neither is this insight.</span>
+        <span class="hl">neither is this insight.</span></span>
       </div>
       <div class="btn-row">
-        <button class="btn" onclick="restartGame()">play again</button>
-        <button class="btn primary" onclick="window.location.href='yourlanguage.html'">return to yourlanguage →</button>
+        <button class="btn" id="restart-btn" onclick="restartGame()">play again</button>
+        <button class="btn primary" id="return-btn" onclick="window.location.href='yourlanguage.html'">return to yourlanguage →</button>
       </div>
     </div>
 
   </div>
 
   <div id="footer-bar">
-    <div class="footer-witt">"The limits of my language mean the limits of my world." — Wittgenstein, Tractatus 5.6</div>
+    <div class="footer-witt" id="footer-quote">"The limits of my language mean the limits of my world." — Wittgenstein, Tractatus 5.6</div>
     <div class="footer-nav">yourlanguage — 魏珏然</div>
   </div>
 </div>
 
 <script>
-let currentLevel=1,cmdStep=0,descriptionSubmitted=false,translationSubmitted=false,ruleSubmitted=false;
+// ── STRINGS ──
+const STR = {
+  en: {
+    l1num:'level 01', l1title:'The Naming Game', l1rule:'Name the three objects below.<br>Any name. Any language. No rules.',
+    namepl:'name it', l1btn:'submit names',
+    rev1:`You named three shapes.<br><br>But look at what you actually did.<br><br>Whatever you called <em>◈</em> — sharp or soft, technical or poetic — your name didn't describe the shape. It <strong>produced</strong> a relationship between you and it. Whether it sounds dangerous or gentle, familiar or alien — that tone is now inseparable from the shape.<br><br>You didn't name objects.<br>You named your power over them.<br><br>This is the first rule of every language game:<br><em>to name is not to point. to name is to claim.</em>`,
+    l2num:'level 02', l2title:'The Obedience Game', l2rule:'Follow the instructions.<br>Click each one in order.',
+    cmd1:'Read this sentence.', cmd2:'Click this line to confirm you have read it.',
+    cmd3:'Notice that you are following instructions.', cmd4:'Continue following instructions.',
+    cmd5:'Click here to complete the game.',
+    rev2:`You followed five instructions.<br><br>At no point did you ask: <em>why these instructions?</em><br>At no point did you ask: <em>who wrote them?</em><br>At no point did you ask: <em>what gives them authority?</em><br><br>You didn't need to. The instructions were instructions because they <em>looked like</em> instructions. Their authority came from their form, not their content.<br><br>Wittgenstein: <em>to follow a rule is not to interpret it. it is to act in a certain way.</em><br><br>You just demonstrated the entire structure of language games in five clicks.<br><strong>The rule doesn't explain itself. Obeying is understanding.</strong>`,
+    l3num:'level 03', l3title:'The Description Game', l3rule:'Describe what you see in one sentence.',
+    descpl:'one sentence. what do you see.', l3btn:'submit',
+    descYou:'you wrote', descObs:['observer A','observer B','observer C','observer D','observer E'],
+    descTexts:['A circle and a square, separated by a line.','Two shapes that cannot touch.','Something divided into before and after.','A confrontation between two different kinds of thing.','Nothing in particular. Just shapes.'],
+    rev3:`You described the image.<br>Then you saw how others described the same image.<br><br>Same shapes. Different sentences. Different realities.<br><br>Which description is correct?<br><br>The question is wrong.<br><br><strong>Description doesn't record reality. Description produces reality.</strong><br><br>The moment you wrote your sentence, you didn't capture what was there.<br>You decided what it was.<br>And once decided — it became very difficult to see it another way.<br><br><em>This is how language colonizes perception.</em>`,
+    l4num:'level 04', l4title:'The Translation Game', l4rule:"Rewrite this sentence three times.<br>Keep the meaning exactly the same.",
+    trSource:'"The door was left open by someone."',
+    trPl1:'attempt 1 — same meaning', trPl2:'attempt 2 — same meaning', trPl3:'attempt 3 — same meaning',
+    trShifted:'meaning shifted', trLoading:'analyzing shifts...', trBtn:'submit all three',
+    trFallback:`Three attempts. Each one changed something.<br><br><em>Passive to active: agency appears or disappears.</em><br><em>Word order shifts: emphasis migrates.</em><br><em>Synonym substitution: connotation bleeds through.</em><br><br><strong>Meaning cannot survive transfer unchanged.</strong><br><br>This is not a limitation of your skill.<br>It is a structural property of language games:<br><em>every restatement is a new game with new rules.</em>`,
+    l5num:'level 05', l5title:'The Rule Game', l5rule:'Find the rule of this game.',
+    tl1:'initializing rule search...', tl2:'scanning for rule structure...',
+    rulepl:'enter what you think the rule is', ruleLoading:'processing...',
+    rev5suffix:`<br><br><strong>The rule of this game was: search for the rule.</strong><br><br>The moment you began looking, you were already playing.<br>The moment you submitted an answer, you proved the rule exists.<br>The moment you understood — you performed it.<br><br><em>There is no position outside the game from which to observe the game.</em><br><br>This is the fifth and final language game.<br>It is also the first.`,
+    rev5fallback:`You found something. Whether it is the rule is not the point.<br><br><strong>The rule of this game was: search for the rule.</strong><br><br>The moment you began looking, you were already playing.<br>The moment you submitted, you proved the rule exists.<br><br><em>There is no position outside the game from which to observe the game.</em><br><br>This is the fifth and final language game. It is also the first.`,
+    endNum:'game complete', endTitle:"You played five language games.<br>All of them played you.",
+    ec:['Naming','Obeying','Describing','Translating','Rule-finding'],
+    ecIns:['to name is to claim, not to point','following is understanding, not interpreting','description produces, not records','meaning cannot survive transfer unchanged','searching for the rule executes the rule'],
+    endHl:'the fifth layer:',
+    endBody:`the framework you just learned —<br>naming, obeying, describing, translating, rule-finding —<br>is itself a language game.<br><br>its rule: <em>make you feel you now understand how language works.</em><br><br><span class="hl">yourlanguage was never yours.</span><br><span class="hl">neither is this insight.</span>`,
+    restartBtn:'play again', returnBtn:'return to yourlanguage →',
+    nextBtn:'continue →', completeBtn:'complete the game →',
+    footer:'"The limits of my language mean the limits of my world." — Wittgenstein, Tractatus 5.6',
+    trSysPrompt:`You are a language game system. Original sentence: "The door was left open by someone." The player tried to rewrite it keeping the same meaning. For each attempt, note in 1 sentence what has shifted — voice, emphasis, agency, implied subject, connotation. Be cold and precise. Format: "Attempt N: [observation]". Max 150 words.`,
+    ruleSysPrompt:`You are the final level of a Wittgenstein language game. The player was asked to "find the rule of this game." Respond in 3-4 sentences: 1) briefly acknowledge what they found without judgment, 2) point out that the act of searching for the rule is itself executing the rule — their search proved the rule exists, 3) end with one sharp sentence that closes the loop. Cold, precise, no moral framing.`
+  },
+  zh: {
+    l1num:'第 01 关', l1title:'命名游戏', l1rule:'给下面三个图形命名。<br>任何名字。任何语言。没有规则。',
+    namepl:'命名', l1btn:'提交名称',
+    rev1:`你命名了三个图形。<br><br>但看看你实际上做了什么。<br><br>不管你如何称呼 <em>◈</em>——锋利或柔软，技术性或诗意——你的名字没有描述这个形状。它<strong>产生</strong>了你与它之间的关系。无论这个名字听起来危险还是温和，熟悉还是陌生——那种语气现在已经与这个形状不可分割。<br><br>你没有在命名物体。<br>你在命名你对它们的权力。<br><br>这是每个语言游戏的第一条规则：<br><em>命名不是指向。命名是占有。</em>`,
+    l2num:'第 02 关', l2title:'遵从游戏', l2rule:'遵从下面的指令。<br>按顺序点击每一条。',
+    cmd1:'阅读这个句子。', cmd2:'点击这行以确认你已阅读。',
+    cmd3:'注意到你正在遵从指令。', cmd4:'继续遵从指令。',
+    cmd5:'点击这里完成游戏。',
+    rev2:`你遵从了五条指令。<br><br>你从未问过：<em>为什么是这些指令？</em><br>你从未问过：<em>是谁写的？</em><br>你从未问过：<em>它们的权威从哪里来？</em><br><br>你不需要问。这些指令之所以是指令，是因为它们<em>看起来像</em>指令。它们的权威来自形式，而不是内容。<br><br>维特根斯坦：<em>遵从规则不是解释规则，而是以某种方式行动。</em><br><br>你用五次点击演示了语言游戏的整个结构。<br><strong>规则不解释自己。遵从就是理解。</strong>`,
+    l3num:'第 03 关', l3title:'描述游戏', l3rule:'用一句话描述你看到的内容。',
+    descpl:'一句话。你看到了什么。', l3btn:'提交',
+    descYou:'你写道', descObs:['观察者甲','观察者乙','观察者丙','观察者丁','观察者戊'],
+    descTexts:['一个圆和一个正方形，被一条线分隔。','两个无法接触的形状。','某种被分割为前后的东西。','两种不同事物之间的对抗。','没什么特别的。只是形状。'],
+    rev3:`你描述了图像。<br>然后你看到别人如何描述同一张图像。<br><br>相同的形状。不同的句子。不同的现实。<br><br>哪个描述是正确的？<br><br>这个问题本身就是错的。<br><br><strong>描述不是记录现实。描述是生产现实。</strong><br><br>你写下那句话的瞬间，你没有捕捉到那里有什么。<br>你决定了它是什么。<br>一旦决定——就很难再以另一种方式看它了。<br><br><em>这就是语言殖民感知的方式。</em>`,
+    l4num:'第 04 关', l4title:'翻译游戏', l4rule:'将这个句子改写三次。<br>保持意义完全相同。',
+    trSource:'「门被某人留着开着。」',
+    trPl1:'第一次——意思不变', trPl2:'第二次——意思不变', trPl3:'第三次——意思不变',
+    trShifted:'意义已偏移', trLoading:'分析偏移中...', trBtn:'提交全部三次',
+    trFallback:`三次尝试。每次都改变了什么。<br><br><em>主动与被动转换：施事者出现或消失。</em><br><em>词序改变：重心迁移。</em><br><em>同义词替换：含义渗漏。</em><br><br><strong>意义无法在转移中保持不变。</strong><br><br>这不是你能力的局限。<br>这是语言游戏的结构性特质：<br><em>每次重述都是一个有着新规则的新游戏。</em>`,
+    l5num:'第 05 关', l5title:'规则游戏', l5rule:'找出这个游戏的规则。',
+    tl1:'正在初始化规则搜索...', tl2:'正在扫描规则结构...',
+    rulepl:'输入你认为的规则', ruleLoading:'处理中...',
+    rev5suffix:`<br><br><strong>这个游戏的规则是：寻找规则。</strong><br><br>你开始寻找的那一刻，你已经在游戏中了。<br>你提交答案的那一刻，你证明了规则的存在。<br>你理解的那一刻——你执行了它。<br><br><em>不存在一个游戏之外的位置，可以从那里观察游戏。</em><br><br>这是第五个也是最后一个语言游戏。<br>也是第一个。`,
+    rev5fallback:`你找到了某些东西。它是否是规则并不重要。<br><br><strong>这个游戏的规则是：寻找规则。</strong><br><br>你开始寻找的那一刻，你已经在游戏中了。<br>你提交答案的那一刻，你证明了规则的存在。<br><br><em>不存在一个游戏之外的位置，可以从那里观察游戏。</em><br><br>这是第五个也是最后一个语言游戏。也是第一个。`,
+    endNum:'游戏完成', endTitle:'你玩了五个语言游戏。<br>它们都在玩你。',
+    ec:['命名','遵从','描述','翻译','寻找规则'],
+    ecIns:['命名是占有，不是指向','遵从是理解，不是解释','描述是生产，不是记录','意义无法在转移中保持不变','寻找规则就是执行规则'],
+    endHl:'第五层：',
+    endBody:`你刚刚学到的框架——<br>命名、遵从、描述、翻译、寻找规则——<br>本身就是一个语言游戏。<br><br>它的规则：<em>让你感到你现在理解了语言是如何运作的。</em><br><br><span class="hl">yourlanguage从来都不是你的。</span><br><span class="hl">这个洞见也不是。</span>`,
+    restartBtn:'重新开始', returnBtn:'返回 yourlanguage →',
+    nextBtn:'继续 →', completeBtn:'完成游戏 →',
+    footer:'"我的语言的界限，就是我的世界的界限。" — 维特根斯坦，《逻辑哲学论》5.6',
+    trSysPrompt:`你是一个语言游戏系统。原句：「门被某人留着开着。」玩家试图改写它并保持相同意义。对每次尝试，用一句话指出发生了什么偏移——语态、强调、施事性、含义。精准、冷静。格式：「第N次：[观察]」。最多150字。`,
+    ruleSysPrompt:`你是维特根斯坦语言游戏的最后一关。玩家被要求「找出这个游戏的规则」。用3-4句话回应：1）简短承认他们找到的内容；2）指出寻找规则的行为本身就是在执行规则；3）用一句锋利的话收尾。冷静、精准，不做道德评判。用中文回答。`
+  },
+  ja: {
+    l1num:'レベル 01', l1title:'命名ゲーム', l1rule:'以下の三つの図形に名前をつけよ。<br>どんな名前でも。どんな言語でも。ルールはない。',
+    namepl:'名前をつける', l1btn:'名前を提出する',
+    rev1:`三つの図形に名前をつけた。<br><br>だが、実際に何をしたか見てみよ。<br><br><em>◈</em> をどう呼んだにせよ——鋭くても柔らかくても、技術的でも詩的でも——その名前は図形を描写したのではない。あなたとそれの間の関係を<strong>生産した</strong>のだ。危険に聞こえようと穏やかに聞こえようと、その語調は今や図形と切り離せない。<br><br>あなたは物体に名前をつけたのではない。<br>それらに対する自分の権力に名前をつけた。<br><br>これがすべての言語ゲームの最初のルールだ：<br><em>命名は指示ではない。命名は領有だ。</em>`,
+    l2num:'レベル 02', l2title:'服従ゲーム', l2rule:'指示に従え。<br>順番にクリックせよ。',
+    cmd1:'この文を読め。', cmd2:'読んだことを確認するためにここをクリックせよ。',
+    cmd3:'自分が指示に従っていることに気づけ。', cmd4:'指示に従い続けよ。',
+    cmd5:'ここをクリックしてゲームを完了せよ。',
+    rev2:`五つの指示に従った。<br><br>一度も問わなかった：<em>なぜこの指示なのか？</em><br>一度も問わなかった：<em>誰が書いたのか？</em><br>一度も問わなかった：<em>何がその権威を与えるのか？</em><br><br>問う必要がなかった。指示は、指示のように<em>見えた</em>から指示だった。権威は内容ではなく形式から来た。<br><br>ウィトゲンシュタイン：<em>規則に従うことは規則を解釈することではない。ある仕方で行動することだ。</em><br><br>五回のクリックで言語ゲームの全構造を実演した。<br><strong>規則は自分を説明しない。服従することが理解することだ。</strong>`,
+    l3num:'レベル 03', l3title:'描述ゲーム', l3rule:'見えるものを一文で描述せよ。',
+    descpl:'一文。何が見えるか。', l3btn:'提出する',
+    descYou:'あなたが書いた', descObs:['観察者A','観察者B','観察者C','観察者D','観察者E'],
+    descTexts:['円と正方形が線で分かれている。','触れることのできない二つの形。','前と後に分割された何か。','異なる種類の二つのものの対立。','特に何もない。ただの形。'],
+    rev3:`画像を描述した。<br>次に、同じ画像を他の人がどう描述したか見た。<br><br>同じ形。異なる文。異なる現実。<br><br>どの描述が正しいか？<br><br>その問いが間違っている。<br><br><strong>描述は現実を記録しない。描述は現実を生産する。</strong><br><br>その文を書いた瞬間、そこにあるものを捉えたのではない。<br>それが何であるかを決定した。<br>一度決定すると——別の見方をするのは非常に難しくなった。<br><br><em>これが言語が知覚を植民地化する方法だ。</em>`,
+    l4num:'レベル 04', l4title:'翻訳ゲーム', l4rule:'この文を三回書き直せ。<br>意味をまったく同じに保て。',
+    trSource:'「ドアは誰かによって開けたままにされた。」',
+    trPl1:'試み1 — 同じ意味で', trPl2:'試み2 — 同じ意味で', trPl3:'試み3 — 同じ意味で',
+    trShifted:'意味がずれた', trLoading:'ずれを分析中...', trBtn:'三つすべてを提出する',
+    trFallback:`三つの試み。それぞれが何かを変えた。<br><br><em>能動と受動の転換：行為者が現れたり消えたりする。</em><br><em>語順の変化：強調が移動する。</em><br><em>同義語の置換：含意が滲み出る。</em><br><br><strong>意味は転送の中で変わらずにいられない。</strong><br><br>これはあなたのスキルの限界ではない。<br>言語ゲームの構造的特性だ：<br><em>あらゆる言い換えは、新しいルールを持つ新しいゲームだ。</em>`,
+    l5num:'レベル 05', l5title:'規則ゲーム', l5rule:'このゲームの規則を見つけよ。',
+    tl1:'規則の検索を初期化中...', tl2:'規則の構造をスキャン中...',
+    rulepl:'規則だと思うものを入力せよ', ruleLoading:'処理中...',
+    rev5suffix:`<br><br><strong>このゲームの規則は：規則を探すことだった。</strong><br><br>探し始めた瞬間、すでにゲームの中にいた。<br>答えを提出した瞬間、規則の存在を証明した。<br>理解した瞬間——それを実行した。<br><br><em>ゲームの外からゲームを観察できる立場は存在しない。</em><br><br>これは第五番目の、そして最後の言語ゲームだ。<br>同時に最初のゲームでもある。`,
+    rev5fallback:`何かを見つけた。それが規則かどうかは問題ではない。<br><br><strong>このゲームの規則は：規則を探すことだった。</strong><br><br>探し始めた瞬間、すでにゲームの中にいた。<br>答えを提出した瞬間、規則の存在を証明した。<br><br><em>ゲームの外からゲームを観察できる立場は存在しない。</em><br><br>これは第五番目の、そして最後の言語ゲームだ。同時に最初でもある。`,
+    endNum:'ゲーム完了', endTitle:'五つの言語ゲームをした。<br>すべてがあなたを使ってゲームをした。',
+    ec:['命名','服従','描述','翻訳','規則探し'],
+    ecIns:['命名は領有であり、指示ではない','服従することが理解することだ','描述は生産し、記録しない','意味は転送の中で変わらずにいられない','規則を探すことが規則を実行することだ'],
+    endHl:'第五層：',
+    endBody:`今学んだ枠組み——<br>命名、服従、描述、翻訳、規則探し——<br>それ自体が言語ゲームだ。<br><br>その規則：<em>言語の仕組みを今理解したと感じさせること。</em><br><br><span class="hl">yourlanguageは最初からあなたのものではなかった。</span><br><span class="hl">この洞察もそうではない。</span>`,
+    restartBtn:'もう一度プレイする', returnBtn:'yourlanguage に戻る →',
+    nextBtn:'続ける →', completeBtn:'ゲームを完了する →',
+    footer:'"私の言語の限界は、私の世界の限界を意味する。" — ウィトゲンシュタイン、論理哲学論考 5.6',
+    trSysPrompt:`あなたは言語ゲームシステムです。元の文：「ドアは誰かによって開けたままにされた。」プレイヤーは同じ意味を保ちながら書き直そうとした。各試みについて、何がずれたか——態、強調、行為性、含意——を1文で指摘してください。冷静かつ正確に。形式：「試み N：[観察]」。最大150語。日本語で答えてください。`,
+    ruleSysPrompt:`あなたはウィトゲンシュタインの言語ゲームの最終レベルです。プレイヤーは「このゲームの規則を見つけよ」と求められました。3-4文で応答してください：1）彼らが見つけたものを判断なしに簡単に認める、2）規則を探す行為自体が規則を実行していることを指摘する、3）ループを閉じる鋭い一文で終える。冷静、正確、道徳的判断なし。日本語で答えてください。`
+  },
+  de: {
+    l1num:'Level 01', l1title:'Das Benennungsspiel', l1rule:'Benenne die drei Objekte unten.<br>Jeder Name. Jede Sprache. Keine Regeln.',
+    namepl:'benennen', l1btn:'Namen einreichen',
+    rev1:`Du hast drei Formen benannt.<br><br>Aber schau, was du wirklich getan hast.<br><br>Wie auch immer du <em>◈</em> genannt hast — scharf oder weich, technisch oder poetisch — dein Name hat die Form nicht beschrieben. Er hat eine Beziehung zwischen dir und ihr <strong>produziert</strong>. Ob er gefährlich oder sanft klingt, vertraut oder fremd — dieser Ton ist nun untrennbar von der Form.<br><br>Du hast keine Objekte benannt.<br>Du hast deine Macht über sie benannt.<br><br>Das ist die erste Regel jedes Sprachspiels:<br><em>Benennen ist kein Zeigen. Benennen ist Aneignen.</em>`,
+    l2num:'Level 02', l2title:'Das Gehorsamkeitsspiel', l2rule:'Befolge die Anweisungen.<br>Klicke jede der Reihe nach.',
+    cmd1:'Lies diesen Satz.', cmd2:'Klicke hier, um zu bestätigen, dass du ihn gelesen hast.',
+    cmd3:'Bemerke, dass du Anweisungen befolgst.', cmd4:'Befolge weiterhin Anweisungen.',
+    cmd5:'Klicke hier, um das Spiel abzuschließen.',
+    rev2:`Du hast fünf Anweisungen befolgt.<br><br>Du hast nie gefragt: <em>warum diese Anweisungen?</em><br>Du hast nie gefragt: <em>wer hat sie geschrieben?</em><br>Du hast nie gefragt: <em>was gibt ihnen Autorität?</em><br><br>Du musstest nicht fragen. Die Anweisungen waren Anweisungen, weil sie <em>wie</em> Anweisungen aussahen. Ihre Autorität kam aus ihrer Form, nicht aus ihrem Inhalt.<br><br>Wittgenstein: <em>einer Regel folgen ist nicht sie interpretieren. Es ist auf eine bestimmte Weise handeln.</em><br><br>Du hast mit fünf Klicks die gesamte Struktur der Sprachspiele demonstriert.<br><strong>Die Regel erklärt sich nicht selbst. Gehorchen ist Verstehen.</strong>`,
+    l3num:'Level 03', l3title:'Das Beschreibungsspiel', l3rule:'Beschreibe, was du siehst, in einem Satz.',
+    descpl:'ein Satz. was siehst du.', l3btn:'einreichen',
+    descYou:'du schriebst', descObs:['Beobachter A','Beobachter B','Beobachter C','Beobachter D','Beobachter E'],
+    descTexts:['Ein Kreis und ein Quadrat, durch eine Linie getrennt.','Zwei Formen, die sich nicht berühren können.','Etwas, das in Vorher und Nachher aufgeteilt ist.','Eine Konfrontation zwischen zwei verschiedenen Arten von Dingen.','Nichts Besonderes. Nur Formen.'],
+    rev3:`Du hast das Bild beschrieben.<br>Dann sahst du, wie andere dasselbe Bild beschrieben.<br><br>Dieselben Formen. Verschiedene Sätze. Verschiedene Wirklichkeiten.<br><br>Welche Beschreibung ist richtig?<br><br>Die Frage ist falsch.<br><br><strong>Beschreibung zeichnet keine Wirklichkeit auf. Beschreibung produziert Wirklichkeit.</strong><br><br>In dem Moment, als du deinen Satz schriebst, hast du nicht erfasst, was dort war.<br>Du hast entschieden, was es war.<br>Und einmal entschieden — war es sehr schwer, es auf eine andere Weise zu sehen.<br><br><em>So kolonisiert Sprache die Wahrnehmung.</em>`,
+    l4num:'Level 04', l4title:'Das Übersetzungsspiel', l4rule:'Schreibe diesen Satz dreimal um.<br>Behalte die Bedeutung genau gleich.',
+    trSource:'"Die Tür wurde von jemandem offen gelassen."',
+    trPl1:'Versuch 1 — gleiche Bedeutung', trPl2:'Versuch 2 — gleiche Bedeutung', trPl3:'Versuch 3 — gleiche Bedeutung',
+    trShifted:'Bedeutung verschoben', trLoading:'Verschiebungen analysieren...', trBtn:'alle drei einreichen',
+    trFallback:`Drei Versuche. Jeder hat etwas verändert.<br><br><em>Aktiv zu passiv: Handelnde erscheinen oder verschwinden.</em><br><em>Wortstellung verändert: Betonung wandert.</em><br><em>Synonymersatz: Konnotation dringt durch.</em><br><br><strong>Bedeutung kann den Transfer nicht unverändert überleben.</strong><br><br>Das ist keine Einschränkung deines Könnens.<br>Es ist eine strukturelle Eigenschaft von Sprachspielen:<br><em>jede Neuformulierung ist ein neues Spiel mit neuen Regeln.</em>`,
+    l5num:'Level 05', l5title:'Das Regelspiel', l5rule:'Finde die Regel dieses Spiels.',
+    tl1:'Regelsuche wird initialisiert...', tl2:'Regelstruktur wird gescannt...',
+    rulepl:'gib ein, was du für die Regel hältst', ruleLoading:'wird verarbeitet...',
+    rev5suffix:`<br><br><strong>Die Regel dieses Spiels war: die Regel suchen.</strong><br><br>In dem Moment, als du zu suchen begannst, spieltest du bereits.<br>In dem Moment, als du eine Antwort einreichtest, bewieses du, dass die Regel existiert.<br>In dem Moment, als du verstanden hast — hast du sie ausgeführt.<br><br><em>Es gibt keine Position außerhalb des Spiels, von der aus man das Spiel beobachten kann.</em><br><br>Das ist das fünfte und letzte Sprachspiel.<br>Es ist auch das erste.`,
+    rev5fallback:`Du hast etwas gefunden. Ob es die Regel ist, spielt keine Rolle.<br><br><strong>Die Regel dieses Spiels war: die Regel suchen.</strong><br><br>In dem Moment, als du zu suchen begannst, spieltest du bereits.<br>In dem Moment, als du einreichtest, bewieses du die Existenz der Regel.<br><br><em>Es gibt keine Position außerhalb des Spiels, von der aus man das Spiel beobachten kann.</em><br><br>Das ist das fünfte und letzte Sprachspiel. Es ist auch das erste.`,
+    endNum:'Spiel abgeschlossen', endTitle:'Du hast fünf Sprachspiele gespielt.<br>Alle haben mit dir gespielt.',
+    ec:['Benennen','Gehorchen','Beschreiben','Übersetzen','Regelsuchen'],
+    ecIns:['Benennen ist Aneignen, nicht Zeigen','Gehorchen ist Verstehen, nicht Interpretieren','Beschreibung produziert, zeichnet nicht auf','Bedeutung überlebt den Transfer nicht unverändert','die Regel suchen bedeutet die Regel ausführen'],
+    endHl:'die fünfte Schicht:',
+    endBody:`das Rahmenwerk, das du gerade gelernt hast —<br>Benennen, Gehorchen, Beschreiben, Übersetzen, Regelsuchen —<br>ist selbst ein Sprachspiel.<br><br>seine Regel: <em>dich fühlen lassen, dass du nun verstehst, wie Sprache funktioniert.</em><br><br><span class="hl">yourlanguage war niemals deins.</span><br><span class="hl">Diese Einsicht auch nicht.</span>`,
+    restartBtn:'nochmals spielen', returnBtn:'zurück zu yourlanguage →',
+    nextBtn:'weiter →', completeBtn:'das Spiel abschließen →',
+    footer:'"Die Grenzen meiner Sprache bedeuten die Grenzen meiner Welt." — Wittgenstein, Tractatus 5.6',
+    trSysPrompt:`Du bist ein Sprachspiel-System. Originalsatz: "Die Tür wurde von jemandem offen gelassen." Der Spieler versuchte ihn umzuschreiben und dabei die gleiche Bedeutung zu behalten. Weise für jeden Versuch in einem Satz auf die Verschiebung hin — Stimme, Betonung, Handelnde, Konnotation. Kalt und präzise. Format: "Versuch N: [Beobachtung]". Max 150 Wörter. Auf Deutsch antworten.`,
+    ruleSysPrompt:`Du bist das letzte Level eines Wittgenstein-Sprachspiels. Der Spieler wurde gebeten, "die Regel dieses Spiels zu finden". Antworte in 3-4 Sätzen: 1) anerkenne kurz, was er gefunden hat; 2) weise darauf hin, dass der Akt der Regelsuche selbst die Regel ausführt; 3) beende mit einem scharfen Satz. Kalt, präzise, kein moralisches Urteil. Auf Deutsch antworten.`
+  }
+};
 
-function flash(cb){
-  const f=document.getElementById('flash');
-  f.classList.add('on');
-  setTimeout(()=>{f.classList.remove('on');if(cb)cb();},150);
+let cur='en', currentLevel=1, cmdStep=0, descriptionSubmitted=false, translationSubmitted=false, ruleSubmitted=false;
+
+function switchLang(l){
+  cur=l;
+  document.body.className='lang-'+l;
+  applyStrings();
+  // reset placeholders
+  document.querySelectorAll('.object-input').forEach(el=>el.placeholder=STR[l].namepl);
+  document.getElementById('describe-input').placeholder=STR[l].descpl;
+  document.getElementById('tr-1').placeholder=STR[l].trPl1;
+  document.getElementById('tr-2').placeholder=STR[l].trPl2;
+  document.getElementById('tr-3').placeholder=STR[l].trPl3;
+  document.getElementById('rule-input').placeholder=STR[l].rulepl;
+  document.getElementById('loading-tr').textContent=STR[l].trLoading;
+  document.getElementById('loading-rule').textContent=STR[l].ruleLoading;
 }
+
+function applyStrings(){
+  const s=STR[cur];
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.innerHTML=v;};
+  set('l1-num',s.l1num);set('l1-title',s.l1title);set('l1-rule',s.l1rule);set('l1-btn',s.l1btn);
+  set('l2-num',s.l2num);set('l2-title',s.l2title);set('l2-rule',s.l2rule);
+  set('cmd-1-text',s.cmd1);set('cmd-2-text',s.cmd2);set('cmd-3-text',s.cmd3);set('cmd-4-text',s.cmd4);set('cmd-5-text',s.cmd5);
+  set('l3-num',s.l3num);set('l3-title',s.l3title);set('l3-rule',s.l3rule);set('l3-btn',s.l3btn);
+  set('l4-num',s.l4num);set('l4-title',s.l4title);set('l4-rule',s.l4rule);
+  set('translate-source',s.trSource);set('tr-submit',s.trBtn);
+  set('l5-num',s.l5num);set('l5-title',s.l5title);set('l5-rule',s.l5rule);
+  set('tl-1-text',s.tl1);set('tl-2-text',s.tl2);
+  set('end-num',s.endNum);set('end-title',s.endTitle);set('end-hl',s.endHl);set('end-body',s.endBody);
+  for(let i=0;i<5;i++){set('ec'+(i+1)+'-name',s.ec[i]);set('ec'+(i+1)+'-ins',s.ecIns[i]);}
+  set('restart-btn',s.restartBtn);set('return-btn',s.returnBtn);
+  set('footer-quote',s.footer);
+  set('next-1-btn',s.nextBtn);set('next-2-btn',s.nextBtn);set('next-3-btn',s.nextBtn);set('next-4-btn',s.nextBtn);
+  set('next-5-btn',s.completeBtn);
+}
+
+function flash(cb){const f=document.getElementById('flash');f.classList.add('on');setTimeout(()=>{f.classList.remove('on');if(cb)cb();},150);}
 
 function goLevel(n){
   flash(()=>{
@@ -300,12 +512,7 @@ function goLevel(n){
 }
 
 function updateTrack(n){
-  for(let i=0;i<5;i++){
-    const d=document.getElementById('dot-'+i);
-    d.classList.remove('done','active');
-    if(i<n-1)d.classList.add('done');
-    else if(i===n-1)d.classList.add('active');
-  }
+  for(let i=0;i<5;i++){const d=document.getElementById('dot-'+i);d.classList.remove('done','active');if(i<n-1)d.classList.add('done');else if(i===n-1)d.classList.add('active');}
 }
 
 function goEnd(){
@@ -322,14 +529,19 @@ function restartGame(){
     currentLevel=1;cmdStep=0;descriptionSubmitted=false;translationSubmitted=false;ruleSubmitted=false;
     ['name-1','name-2','name-3','describe-input','tr-1','tr-2','tr-3','rule-input'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
     [2,3,4,5].forEach(i=>{const el=document.getElementById('cmd-'+i);if(el){el.style.pointerEvents='none';el.style.opacity='0.3';}});
-    [1,2,3,4,5].forEach(i=>{const el=document.getElementById('cmd-'+i);if(el)el.classList.remove('executed');});
+    for(let i=1;i<=5;i++){const el=document.getElementById('cmd-'+i);if(el)el.classList.remove('executed');}
     document.getElementById('description-responses').innerHTML='';
     ['tr-res-1','tr-res-2','tr-res-3'].forEach(id=>{const el=document.getElementById(id);if(el){el.textContent='—';el.classList.remove('changed');}});
     document.querySelectorAll('.revelation').forEach(r=>r.classList.remove('shown'));
     document.querySelectorAll('[id^="next-"]').forEach(n=>n.style.display='none');
-    document.getElementById('end-screen').classList.remove('active');
+    // reset terminal
+    ['tl-1','tl-2','tl-3','tl-div'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('shown');});
+    document.getElementById('rule-input-row').classList.remove('shown');
     document.getElementById('rule-input').disabled=false;
     document.getElementById('tr-submit').disabled=false;
+    // remove added terminal lines
+    document.querySelectorAll('.terminal-line.acc').forEach(el=>el.remove());
+    document.getElementById('end-screen').classList.remove('active');
     document.querySelectorAll('.level-panel').forEach(p=>p.classList.remove('active'));
     document.getElementById('level-1').classList.add('active');
     updateTrack(1);document.getElementById('cur-level-num').textContent='1';document.getElementById('stage').scrollTop=0;
@@ -344,6 +556,7 @@ function submitNaming(){
   const n2=document.getElementById('name-2').value.trim();
   const n3=document.getElementById('name-3').value.trim();
   if(!n1||!n2||!n3)return;
+  document.getElementById('rev-1-text').innerHTML=STR[cur].rev1;
   document.getElementById('rev-1').classList.add('shown');
   document.getElementById('next-1').style.display='flex';
   document.getElementById('dot-0').classList.remove('active');document.getElementById('dot-0').classList.add('done');document.getElementById('dot-1').classList.add('active');
@@ -356,37 +569,30 @@ function executeCmd(n){
   document.getElementById('cmd-'+n).classList.add('executed');
   cmdStep=n;
   if(n<5){const nx=document.getElementById('cmd-'+(n+1));nx.style.pointerEvents='auto';nx.style.opacity='1';}
-  if(n===5){setTimeout(()=>{document.getElementById('rev-2').classList.add('shown');document.getElementById('next-2').style.display='flex';scrollBottom();},400);}
+  if(n===5){setTimeout(()=>{document.getElementById('rev-2-text').innerHTML=STR[cur].rev2;document.getElementById('rev-2').classList.add('shown');document.getElementById('next-2').style.display='flex';scrollBottom();},400);}
 }
 
 // L3
-const otherDescriptions=[
-  {label:'observer A',text:'A circle and a square, separated by a line.'},
-  {label:'observer B',text:'Two shapes that cannot touch.'},
-  {label:'observer C',text:'Something divided into before and after.'},
-  {label:'observer D',text:'A confrontation between two different kinds of thing.'},
-  {label:'observer E',text:'Nothing in particular. Just shapes.'},
-];
-
 function submitDescription(){
   const val=document.getElementById('describe-input').value.trim();
   if(!val||descriptionSubmitted)return;
   descriptionSubmitted=true;
+  const s=STR[cur];
   const container=document.getElementById('description-responses');
   container.innerHTML='';
   const ur=document.createElement('div');
   ur.className='other-description shown';
-  ur.innerHTML=`<span class="desc-label">you wrote</span>${val}`;
+  ur.innerHTML=`<span class="desc-label">${s.descYou}</span>${val}`;
   ur.style.borderLeftColor='var(--acc)';ur.style.color='var(--acc)';
   container.appendChild(ur);
-  otherDescriptions.forEach((d,i)=>{
+  s.descTexts.forEach((txt,i)=>{
     const row=document.createElement('div');
     row.className='other-description';
-    row.innerHTML=`<span class="desc-label">${d.label}</span>${d.text}`;
+    row.innerHTML=`<span class="desc-label">${s.descObs[i]}</span>${txt}`;
     container.appendChild(row);
     setTimeout(()=>row.classList.add('shown'),(i+1)*280);
   });
-  setTimeout(()=>{document.getElementById('rev-3').classList.add('shown');document.getElementById('next-3').style.display='flex';scrollBottom();},otherDescriptions.length*280+500);
+  setTimeout(()=>{document.getElementById('rev-3-text').innerHTML=STR[cur].rev3;document.getElementById('rev-3').classList.add('shown');document.getElementById('next-3').style.display='flex';scrollBottom();},s.descTexts.length*280+500);
 }
 
 // L4
@@ -394,7 +600,7 @@ function checkTranslation(n){
   const val=document.getElementById('tr-'+n).value.trim();
   const res=document.getElementById('tr-res-'+n);
   if(!val){res.textContent='—';res.classList.remove('changed');return;}
-  res.textContent='meaning shifted';res.classList.add('changed');
+  res.textContent=STR[cur].trShifted;res.classList.add('changed');
 }
 
 async function submitTranslation(){
@@ -408,12 +614,13 @@ async function submitTranslation(){
   document.getElementById('loading-tr').classList.add('active');
   const attempts=[t1,t2,t3].filter(Boolean).join(' | ');
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,system:`You are a language game system. Original sentence: "The door was left open by someone." The player tried to rewrite it keeping the same meaning. For each attempt, note in 1 sentence what has shifted — voice, emphasis, agency, implied subject, connotation. Be cold and precise. Format: "Attempt N: [observation]". Max 150 words.`,messages:[{role:'user',content:attempts}]})});
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,system:STR[cur].trSysPrompt,messages:[{role:'user',content:attempts}]})});
     const data=await res.json();
     const analysis=data.content.map(b=>b.text||'').join('');
-    document.getElementById('rev-4-content').innerHTML=`Three attempts. Each one changed something.<br><br>${analysis.replace(/\n/g,'<br>')}<br><br><strong>Meaning cannot survive transfer unchanged.</strong><br><br>This is not a limitation of your skill.<br>It is a structural property of language games:<br><em>every restatement is a new game with new rules.</em><br><br>"The same meaning" is itself a language game — one that assumes meaning is a stable object that travels between sentences. It doesn't. It is produced by each sentence, each time.`;
+    const s=STR[cur];
+    document.getElementById('rev-4-content').innerHTML=`${s.trFallback.split('<strong>')[0]}<br>${analysis.replace(/\n/g,'<br>')}<br><br><strong>${s.trFallback.split('<strong>')[1].split('</strong>')[0]}</strong><br><br>${s.trFallback.split('</strong>')[1]}`;
   }catch(e){
-    document.getElementById('rev-4-content').innerHTML=`Three attempts. Each one changed something.<br><br><em>Passive to active: agency appears or disappears.</em><br><em>Word order shifts: emphasis migrates.</em><br><em>Synonym substitution: connotation bleeds through.</em><br><br><strong>Meaning cannot survive transfer unchanged.</strong><br><br>This is not a limitation of your skill.<br>It is a structural property of language games:<br><em>every restatement is a new game with new rules.</em>`;
+    document.getElementById('rev-4-content').innerHTML=STR[cur].trFallback;
   }finally{
     document.getElementById('loading-tr').classList.remove('active');
     document.getElementById('rev-4').classList.add('shown');
@@ -425,7 +632,11 @@ async function submitTranslation(){
 // L5
 function initRuleGame(){
   ['tl-1','tl-2','tl-3'].forEach((id,i)=>{setTimeout(()=>{const el=document.getElementById(id);if(el)el.classList.add('shown');},i*600);});
-  setTimeout(()=>document.getElementById('rule-input').focus(),1800);
+  setTimeout(()=>{
+    document.getElementById('tl-div').classList.add('shown');
+    document.getElementById('rule-input-row').classList.add('shown');
+    document.getElementById('rule-input').focus();
+  },1800);
 }
 
 async function submitRule(){
@@ -435,17 +646,19 @@ async function submitRule(){
   ruleSubmitted=true;
   document.getElementById('rule-input').disabled=true;
   document.getElementById('loading-rule').classList.add('active');
-  const terminal=document.getElementById('rule-terminal');
+  const terminal=document.getElementById('rule-block');
   const line=document.createElement('span');
-  line.className='terminal-line acc shown';line.textContent='> '+val;
-  terminal.insertBefore(line,document.getElementById('tl-3'));
+  line.className='terminal-line acc shown';
+  line.style.marginTop='0.2rem';
+  line.textContent='> '+val;
+  terminal.insertBefore(line,document.getElementById('tl-div'));
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:350,system:`You are the final level of a Wittgenstein language game. The player was asked to "find the rule of this game." Respond in 3-4 sentences: 1) briefly acknowledge what they found without judgment, 2) point out that the act of searching for the rule is itself executing the rule — their search proved the rule exists, 3) end with one sharp sentence that closes the loop. Cold, precise, no moral framing.`,messages:[{role:'user',content:`Player's answer: "${val}"`}]})});
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:350,system:STR[cur].ruleSysPrompt,messages:[{role:'user',content:`Player's answer: "${val}"`}]})});
     const data=await res.json();
     const response=data.content.map(b=>b.text||'').join('');
-    document.getElementById('rev-5-content').innerHTML=`${response}<br><br><strong>The rule of this game was: search for the rule.</strong><br><br>The moment you began looking, you were already playing.<br>The moment you submitted an answer, you proved the rule exists.<br>The moment you understood — you performed it.<br><br><em>There is no position outside the game from which to observe the game.</em><br><br>This is the fifth and final language game.<br>It is also the first.`;
+    document.getElementById('rev-5-content').innerHTML=response+STR[cur].rev5suffix;
   }catch(e){
-    document.getElementById('rev-5-content').innerHTML=`You found something. Whether it is the rule is not the point.<br><br><strong>The rule of this game was: search for the rule.</strong><br><br>The moment you began looking, you were already playing.<br>The moment you submitted, you proved the rule exists.<br><br><em>There is no position outside the game from which to observe the game.</em><br><br>This is the fifth and final language game. It is also the first.`;
+    document.getElementById('rev-5-content').innerHTML=STR[cur].rev5fallback;
   }finally{
     document.getElementById('loading-rule').classList.remove('active');
     document.getElementById('rev-5').classList.add('shown');
@@ -454,6 +667,14 @@ async function submitRule(){
   }
 }
 
+// init
+applyStrings();
+document.querySelectorAll('.object-input').forEach(el=>el.placeholder=STR['en'].namepl);
+document.getElementById('describe-input').placeholder=STR['en'].descpl;
+document.getElementById('tr-1').placeholder=STR['en'].trPl1;
+document.getElementById('tr-2').placeholder=STR['en'].trPl2;
+document.getElementById('tr-3').placeholder=STR['en'].trPl3;
+document.getElementById('rule-input').placeholder=STR['en'].rulepl;
 updateTrack(1);
 </script>
 </body>
